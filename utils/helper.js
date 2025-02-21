@@ -6,7 +6,7 @@ const Guild = require('../Schemas/guildSchema');
 const cachedTranslations = {};
 const cachedGuildLanguages = {};
 
-const CACHE_TTL = 60 * 60 * 1000; // 1 година
+const CACHE_TTL = 10 * 60 * 1000; // 1 година
 const cachedTimestamps = {};
 
 function load_translations(language) {
