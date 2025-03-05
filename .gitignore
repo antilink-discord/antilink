@@ -2,3 +2,10 @@
 .idea/  
 node_modules/
 package-lock.json
+.prettierrc
+commands/devcommands/
+docker-compose.yml
+railway.json
+server.js
+utils/getGuildChannels.js
+eslint.config.js
