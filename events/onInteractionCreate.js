@@ -1,8 +1,6 @@
-const { Events, MessageFlags, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionOverwriteManager, PermissionOverwrites, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, flatten, Collection } = require('discord.js');
+const { Events, MessageFlags, Collection } = require('discord.js');
 require('dotenv').config();
 const { send_webhook } = require('../utils/sendBugReport');
-const { colors } = require('../utils/helper');
-const { settingsHandler } = require('../utils/settingsHandler');
 const Logger = require('../utils/logs');
 lg = new Logger('Bot');
 
@@ -19,7 +17,6 @@ module.exports = {
 				lg.log(error);
 			}
 		}
-		const { emoji_pack } = await settingsHandler(interaction);
 		if (interaction.isModalSubmit()) {
 			try {
 				if (interaction.customId === 'bug_report') {

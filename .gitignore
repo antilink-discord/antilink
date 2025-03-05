@@ -4,3 +4,8 @@ node_modules/
 package-lock.json
 AntiLink.zip
 commands/devcommands
+utils/getGuildChannels.js
+server.js
+railway.json
+.prettierrc
+docker-compose.yml
