@@ -1,7 +1,7 @@
 const { getTranslation } = require('./helper');
 const Guild = require('../Schemas/guildSchema');
 const Logger = require('./logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 async function get_webhook(guildData, interaction) {
     try{

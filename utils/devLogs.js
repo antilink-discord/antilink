@@ -4,7 +4,7 @@ const now = new Date();
 const formattedTime = now.toISOString().slice(0, 19).replace('T', ' ');
 const webhook = new WebhookClient({ url: process.env.DEV_GUILD_WEBHOOK });
 const Logger = require('./logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 async function sendJoinLogs(guild, client) {
 	try {
 

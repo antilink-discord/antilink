@@ -7,7 +7,7 @@ const { canBotBanMember } = require('../utils/sendDmMessages');
 const { warning_cache_check, add_warns_to_cache } = require('../utils/userWarningsCaching');
 const { ban_member, delete_message_and_notice, check_blocking, check_whitelist_and_owner } = require('../utils/memberBan');
 const Logger = require('../utils/logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 module.exports = {
 	name: Events.MessageCreate,

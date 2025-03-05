@@ -8,7 +8,7 @@ const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
 const Logger = require('../utils/logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 module.exports = {
 	name: Events.ClientReady,

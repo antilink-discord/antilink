@@ -1,7 +1,7 @@
 const { discord, EmbedBuilder } = require('discord.js');
 const { getTranslation } = require('./helper');
 const Logger = require('./logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 async function sendBanMessage(user, guild) {
 	try {

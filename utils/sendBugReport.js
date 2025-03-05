@@ -2,7 +2,7 @@ const { EmbedBuilder, WebhookClient, MessageFlags } = require('discord.js');
 const { colors, getTranslation } = require('./helper');
 const { settingsHandler } = require('./settingsHandler');
 const Logger = require('./logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 async function send_webhook(interaction, bug_text, reproduce_text) {
 	try {

@@ -6,7 +6,7 @@ const { guild_link_delete_log, guild_ban_log } = require('./guildLogs');
 const { banLogs, linkLogs } = require('./devLogs');
 const { sendBanMessage } = require('../utils/sendDmMessages');
 const Logger = require('./logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 async function ban_member(message, user_cache) {
 	try {

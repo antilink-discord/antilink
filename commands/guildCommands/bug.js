@@ -1,7 +1,7 @@
 const { EmbedBuilder, SlashCommandBuilder, WebhookClient, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle } = require('discord.js');
 const { getTranslation } = require('../../utils/helper');
 const Logger = require('../../utils/logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 require('dotenv');
 module.exports = {

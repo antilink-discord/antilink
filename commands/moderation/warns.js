@@ -3,7 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const Warning = require('../../Schemas/userSchema');
 const { getTranslation } = require('../../utils/helper');
 const Logger = require('../../utils/logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 module.exports = {
 	data: new SlashCommandBuilder()

@@ -4,7 +4,7 @@ const { getTranslation } = require('../../utils/helper');
 const { get_emojis_for_message } = require('../../utils/settingsHandler');
 
 const Logger = require('../../utils/logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('help')

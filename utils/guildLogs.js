@@ -2,7 +2,7 @@ const { EmbedBuilder, WebhookClient } = require('discord.js');
 const Guild = require('../Schemas/guildSchema');
 const { getTranslation } = require('../utils/helper');
 const Logger = require('./logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 async function guild_link_delete_log(message, user_id, channel_name) {
     try{

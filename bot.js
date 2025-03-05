@@ -3,7 +3,7 @@ const path = require('node:path');
 const Logger = require('./utils/logs');
 const { Client, Collection, Events, GatewayIntentBits, REST, Routes } = require('discord.js');
 require('dotenv').config();
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 const mongoose = require('mongoose');
 const { load_translations, getTransation } = require('./utils/helper');
 const mongoURI = process.env.MONGODB_TOKEN;

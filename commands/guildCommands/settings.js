@@ -4,7 +4,7 @@ const Guild = require('../../Schemas/guildSchema');
 const { getTranslation } = require('../../utils/helper');
 const { settingsHandler } = require('../../utils/settingsHandler');
 const Logger = require('../../utils/logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 module.exports = {
 	data: new SlashCommandBuilder()

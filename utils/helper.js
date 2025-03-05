@@ -3,7 +3,7 @@ const path = require('path');
 const mongoose = require('mongoose');
 const Guild = require('../Schemas/guildSchema');
 const Logger = require('./logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 const cachedTranslations = {};
 const cachedGuildLanguages = {};
 

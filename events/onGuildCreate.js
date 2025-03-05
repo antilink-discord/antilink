@@ -5,7 +5,7 @@ require('dotenv').config();
 const Guild = require('../Schemas/guildSchema');
 const { sendJoinLogs } = require('../utils/devLogs');
 const Logger = require('../utils/logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 module.exports = {
 	name: Events.GuildCreate,

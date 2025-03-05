@@ -2,7 +2,7 @@ const User = require('../Schemas/userSchema');
 const UserWarnsCache = new Map();
 const CACHE_TTL = 10 * 60 * 500; // 5 хв збереження кешу
 const Logger = require('./logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 async function warning_cache_check(message) {
 	try {

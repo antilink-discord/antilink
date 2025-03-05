@@ -2,7 +2,7 @@ const { Events, MessageFlags, Collection } = require('discord.js');
 require('dotenv').config();
 const { send_webhook } = require('../utils/sendBugReport');
 const Logger = require('../utils/logs');
-lg = new Logger('Bot');
+lg = new Logger({ prefix: 'Bot' });
 
 module.exports = {
 	name: Events.InteractionCreate,
