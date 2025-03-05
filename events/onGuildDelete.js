@@ -1,32 +1,33 @@
-const { Events, Collection, REST, Routes, EmbedBuilder } = require('discord.js');
-const path = require('path');
-const fs = require('fs');
-require('dotenv').config();
-const Guild = require('../Schemas/guildSchema')
-const { sendLeaveLogs } = require('../utils/devLogs')
+import { Events, Collection, REST, Routes, EmbedBuilder } from 'discord.js';
+import 'dotenv/config'
+import Guild from '../Schemas/guildSchema.js';
+import { sendLeaveLogs } from '../utils/devLogs.js';
+import Logger from '../utils/logs.js';
+const lg = new Logger({ prefix: 'Bot' });
 
-module.exports = {
-    name: Events.GuildDelete,
-    once: false,
+export default {
+	name: Events.GuildDelete,
+	once: false,
+
     async execute(guild) {
-        try {
-            const client = guild.client
-            console.log('Client:'+ client)
-            const guildData = await Guild.findOne({ _id: guild.id });
-            await sendLeaveLogs(guild)
-            if (!guildData) {
-                console.log('Не знайдено даних про гільдію в базі даних');
-                return;
-            }
+    lg.info('Виклик івенту guildDelete');
+		try {
+			const client = guild.client;
 
-            console.log('Знайшов гільдію в базі даних, видаляю...');
-            await guildData.deleteOne();
+			const guildData = await Guild.findOne({ _id: guild.id });
+			await sendLeaveLogs(guild);
+			if (!guildData) {
+				return;
+			}
 
-            // Виклик функції для надсилання логів
-            //await sendDevLogs(guild, client);
-        } catch (error) {
-            console.error('Помилка у GuildDelete:', error);
-        }
-    }
-};
 
+			await guildData.deleteOne();
+
+			// Виклик функції для надсилання логів
+			// await sendDevLogs(guild, client);
+		}
+		catch (error) {
+			lg.error('Помилка у GuildDelete:', error);
+		}
+	}
+}

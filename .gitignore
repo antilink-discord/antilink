@@ -2,10 +2,12 @@
 .idea/  
 node_modules/
 package-lock.json
+commands/devcommands
+AntiLink2.0.zip
 .prettierrc
-commands/devcommands/
 docker-compose.yml
 railway.json
 server.js
 utils/getGuildChannels.js
-eslint.config.js
+.npm/
+shardManager.js

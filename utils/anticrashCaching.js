@@ -1,5 +1,5 @@
 import Logger from './logs.js';
-const lg = new Logger('Bot');
+const lg = new Logger({ prefix: 'Bot' });
 
 const ChannelDeleteCache = new Map();
 const CACHE_TTL = 10 * 60 * 1000; // 10 хв збереження кешу
