@@ -68,6 +68,20 @@ import { check_owner_permission } from '../../utils/settingsHandler.js';
 				.setDescription('Видаляє канал логів на вашій гільдії'),
 		)
 
+        .addSubcommand(subcommand =>
+			subcommand
+				.setName('whitelist_remove')
+				.setDescription('Видаляє вказану роль з білого списку')
+				.addRoleOption(option =>
+					option
+						.setName('role')
+						.setDescription('Вибрана роль буде видалена з білого списку')
+						.setRequired(true),
+
+				),
+
+		)
+
 	export async function autocomplete(interaction) {
 
 
@@ -198,7 +212,7 @@ import { check_owner_permission } from '../../utils/settingsHandler.js';
 						.setColor(colors.SUCCESSFUL_COLOR)
 						.setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 1024 }))
 						.setTitle(texts[lang].setup_successful)
-						.setDescription(texts[lang].setup_whitelist_changed, { role });
+						.setDescription(texts[lang].setup_whitelist_changed.replace('${role}', role));
 					await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
 				}
 				else {
@@ -305,6 +319,38 @@ import { check_owner_permission } from '../../utils/settingsHandler.js';
 			}
 
 		}
+
+        if (interaction.options.getSubcommand() === 'whitelist_remove') {
+            const lang = await get_lang(interaction.client, interaction.guild.id);
+            const isOwner = await check_owner_permission(interaction);
+            if (isOwner === true) {
+                try {
+                    const roleId = interaction.options.getRole('role').id;
+                    const role = await Guild.findOne({ _id: interaction.guild.id, whitelist: { $in: [roleId] } });
+                    
+                    const SuccessfullEmbed = new EmbedBuilder()
+                        .setColor(colors.SUCCESSFUL_COLOR)
+                        .setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 1024 }))
+                        .setTitle(texts[lang].setup_successful)
+                        .setDescription(texts[lang].setup_role_removed.replace('${role}', roleId))
+                    if (!role) {
+                        // Роль не знайдена, відправляємо повідомлення
+                        await interaction.reply({ content: texts[lang].setup_role_not_found, flags: MessageFlags.Ephemeral });
+                    } else {
+                        // Роль знайдена, видаляємо її
+                        await Guild.updateOne(
+                            { _id: interaction.guild.id },
+                            { $pull: { whitelist: roleId } },
+                        );
+                        await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
+                    }
+                } catch (error) {
+                    console.error(error); // Логуємо помилку для відладки
+                    await interaction.reply(texts[lang].main_error_message);
+                }
+            }
+        }
+        
 
 
 	}

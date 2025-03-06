@@ -7,13 +7,12 @@ import { fileURLToPath } from 'url';
 import { pathToFileURL } from 'url';
 import { cacheGuildsLanguages } from '../utils/helper.js';
 import Logger from '../utils/logs.js'
-const lg = new Logger('Bot')
+const lg = new Logger({ prefix: 'Bot' });
 
 const languagesCache = new Map()
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
 
@@ -66,7 +65,9 @@ export default {
         // Реєстрація команд на сервері
         const commands = client.commands.map(command => command.data.toJSON());
 
-        const rest = new REST({ version: '10' }).setToken(token);
+
+        lg.info(`Команди, що реєструються: ${commands.map(command => command.name).join(', ')}`);
+        const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
         lg.info(`Команди, що реєструються: ${commands.map(command => command.name).join(', ')}`);
 

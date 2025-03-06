@@ -1,7 +1,7 @@
 import { EmbedBuilder, WebhookClient } from 'discord.js';
 import Guild from '../Schemas/guildSchema.js';
 import { get_lang } from '../utils/helper.js';
-import { channel_delete_cache_check } from './anticrashCaching.js'
+// import { channel_delete_cache_check } from './anticrashCaching.js'
 import texts from './texts.js';
 import Logger from './logs.js';
 const lg = new Logger({ prefix: 'Bot' });

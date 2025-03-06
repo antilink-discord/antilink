@@ -11,3 +11,5 @@ server.js
 utils/getGuildChannels.js
 .npm/
 shardManager.js
+events/onChannelCreate.js
+utils/anticrashCaching.js
