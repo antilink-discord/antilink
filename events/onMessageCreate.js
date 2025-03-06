@@ -1,15 +1,15 @@
-const { Events } = require('discord.js');
-require('dotenv').config();
-const Guild = require('../Schemas/guildSchema');
-const User = require('../Schemas/userSchema');
-const { canBotBanMember } = require('../utils/sendDmMessages');
+import { Events } from 'discord.js';
+import 'dotenv/config'
+import Guild from '../Schemas/guildSchema.js';
+import User from '../Schemas/userSchema.js';
+import { canBotBanMember } from '../utils/sendDmMessages.js';
 
-const { warning_cache_check, add_warns_to_cache } = require('../utils/userWarningsCaching');
-const { ban_member, delete_message_and_notice, check_blocking, check_whitelist_and_owner } = require('../utils/memberBan');
-const Logger = require('../utils/logs');
-lg = new Logger({ prefix: 'Bot' });
+import { warning_cache_check, add_warns_to_cache } from '../utils/userWarningsCaching.js';
+import { ban_member, delete_message_and_notice, check_blocking, check_whitelist_and_owner } from '../utils/memberBan.js';
+import Logger from '../utils/logs.js';
+const lg = new Logger({ prefix: 'Bot' });
 
-module.exports = {
+export default {
 	name: Events.MessageCreate,
 
 	async execute(message) {
@@ -18,7 +18,7 @@ module.exports = {
 			const guild = message.guild;
 			const isRole = await check_whitelist_and_owner(message);
 			const user_id = message.author.id;
-			const channel_name = message.channel.name;
+			const channel_name = message.channel?.name ?? 'undefined'
 			const guildData = await Guild.findOne({ _id: message.guild.id });
 			const is_blocking_enabled = await check_blocking(message);
 

@@ -1,11 +1,13 @@
-const { EmbedBuilder, WebhookClient, MessageFlags } = require('discord.js');
-const { colors, getTranslation } = require('./helper');
-const { settingsHandler } = require('./settingsHandler');
-const Logger = require('./logs');
-lg = new Logger({ prefix: 'Bot' });
+import { EmbedBuilder, WebhookClient, MessageFlags } from 'discord.js';
+import { colors, get_lang } from './helper.js';
+import texts from './texts.js';
+import { settingsHandler } from './settingsHandler.js';
+import Logger from './logs.js';
+const lg = new Logger('Bot')
 
-async function send_webhook(interaction, bug_text, reproduce_text) {
+export async function send_webhook(interaction, bug_text, reproduce_text) {
 	try {
+        const lang = await get_lang(interaction.client, interaction.guild.id);
 		if (!interaction.customId === 'bug_report') return;
 		const webhook = new WebhookClient({ url: process.env.BUG_WEBHOOK });
 		const { emoji_pack } = await settingsHandler(interaction);
@@ -23,8 +25,8 @@ async function send_webhook(interaction, bug_text, reproduce_text) {
 
 		const SuccessEmbed = new EmbedBuilder()
 			.setColor(colors.SUCCESSFUL_COLOR)
-			.setTitle(`${emoji_pack.settings_emoji}${await getTranslation(interaction.guild.id, 'setup_successful')}`)
-			.setDescription(await getTranslation(interaction.guild.id, 'bug_succeffsull'));
+			.setTitle(`${emoji_pack.settings_emoji}${texts[lang].setup_successful}`)
+			.setDescription(texts[lang].bug_succeffsull);
 
 
 		await interaction.reply({ embeds: [SuccessEmbed], flags: MessageFlags.Ephemeral });
@@ -33,8 +35,3 @@ async function send_webhook(interaction, bug_text, reproduce_text) {
 		lg.error('send_webhook error: ' + error);
 	}
 }
-
-
-module.exports = {
-	send_webhook,
-};

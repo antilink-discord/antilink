@@ -1,10 +1,12 @@
-const { Events, MessageFlags, Collection } = require('discord.js');
-require('dotenv').config();
-const { send_webhook } = require('../utils/sendBugReport');
-const Logger = require('../utils/logs');
-lg = new Logger({ prefix: 'Bot' });
+import { Events, MessageFlags, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionOverwriteManager, PermissionOverwrites, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, flatten, Collection } from 'discord.js';
+import 'dotenv/config'
 
-module.exports = {
+// import { colors } from '../utils/helper.js';
+// import { settingsHandler } from '../utils/settingsHandler.js';
+import Logger from '../utils/logs.js';
+const lg = new Logger({ prefix: 'Bot' });
+
+export default {
 	name: Events.InteractionCreate,
 	async execute(interaction) {
 		if (interaction.isAutocomplete()) {
@@ -17,19 +19,20 @@ module.exports = {
 				lg.log(error);
 			}
 		}
-		if (interaction.isModalSubmit()) {
-			try {
-				if (interaction.customId === 'bug_report') {
-					const bug_text = await interaction.fields.getTextInputValue('bug_input');
-					const reproduce_text = await interaction.fields.getTextInputValue('bug_how_to_reproduce');
-					await send_webhook(interaction, bug_text, reproduce_text);
-				}
-			}
-			catch (error) {
-				lg.log(error);
-			}
+		// const { emoji_pack } = await settingsHandler(interaction);
+		// if (interaction.isModalSubmit()) {
+		// 	try {
+		// 		if (interaction.customId === 'bug_report') {
+		// 			const bug_text = await interaction.fields.getTextInputValue('bug_input');
+		// 			const reproduce_text = await interaction.fields.getTextInputValue('bug_how_to_reproduce');
+		// 			await send_webhook(interaction, bug_text, reproduce_text);
+		// 		}
+		// 	}
+		// 	catch (error) {
+		// 		lg.log(error);
+		// 	}
 
-		}
+		// }
 		if (interaction.isChatInputCommand()) {
 			if (!interaction.inGuild() || !interaction.isCommand()) return;
 

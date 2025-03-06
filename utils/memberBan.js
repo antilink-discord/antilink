@@ -1,14 +1,16 @@
-const Guild = require('../Schemas/guildSchema');
-const User = require('../Schemas/userSchema');
-const { EmbedBuilder } = require('discord.js');
-const { getTranslation } = require('./helper');
-const { guild_link_delete_log, guild_ban_log } = require('./guildLogs');
-const { banLogs, linkLogs } = require('./devLogs');
-const { sendBanMessage } = require('../utils/sendDmMessages');
-const Logger = require('./logs');
-lg = new Logger({ prefix: 'Bot' });
+import Guild from '../Schemas/guildSchema.js';
+import User from '../Schemas/userSchema.js';
+import { EmbedBuilder } from 'discord.js';
+import { get_lang } from './helper.js';
+import texts from './texts.js';
+import { guild_link_delete_log, guild_ban_log } from './guildLogs.js';
+import { banLogs, linkLogs } from './devLogs.js';
+import { sendBanMessage } from '../utils/sendDmMessages.js';
 
-async function ban_member(message, user_cache) {
+import Logger from './logs.js';
+const lg = new Logger({ prefix: 'Bot' });
+
+export async function ban_member(message, user_cache) {
 	try {
 		const member = message.guild.members.cache.get(message.author.id);
 		const channel_name = message.channel.name;
@@ -37,17 +39,18 @@ async function ban_member(message, user_cache) {
 	}
 }
 
-async function delete_message_and_notice(message, userData, channel_name) {
+export async function delete_message_and_notice(message, userData, channel_name) {
 	try {
 		const user = message.author;
 		const guild = message.guild;
 		const user_id = message.author.id;
 		const warnsCount = userData.warns;
+        const lang = await get_lang(message.client, guild.id);
 		const ExampleEmbed = new EmbedBuilder()
-
+        
 			.setColor(0xE53935)
-			.setTitle(await getTranslation(guild.id, 'no_link_title'))
-			.setDescription(await getTranslation(guild.id, 'no_links_description'));
+			.setTitle(texts[lang].no_link_title)
+			.setDescription(texts[lang].no_links_description);
 
 		await message.delete().then(message => {
 			message.channel.send({ content: `<@${message.author.id}>`, embeds: [ExampleEmbed] }).then(message => {
@@ -71,7 +74,7 @@ async function delete_message_and_notice(message, userData, channel_name) {
 	}
 }
 
-async function check_blocking(message) {
+export async function check_blocking(message) {
 	try {
 		const guildData = await Guild.findOne({ _id: message.guild.id });
 
@@ -88,7 +91,7 @@ async function check_blocking(message) {
 	}
 }
 
-async function check_whitelist_and_owner(message) {
+export async function check_whitelist_and_owner(message) {
 	try {
 		const guildData = await Guild.findOne({ _id: message.guild.id });
 		const whitelist_data = guildData ? guildData.whitelist : [];
@@ -121,9 +124,3 @@ async function check_whitelist_and_owner(message) {
 		lg.error('Сталася помилка:', error);
 	}
 }
-module.exports = {
-	ban_member,
-	delete_message_and_notice,
-	check_blocking,
-	check_whitelist_and_owner,
-};

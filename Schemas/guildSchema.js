@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 // Створення схеми для користувача
 const guildSchema = new mongoose.Schema({
@@ -23,10 +23,13 @@ const guildSchema = new mongoose.Schema({
 		type: String,
 		default: 'en',
 	},
+    antiCrashMode: {
+        type: Boolean,
+        default: false
+    }
 
 }, { collection: 'collguilds' }); // Вказуємо колекцію вручну
 
 const Guild = mongoose.model('Guild', guildSchema);
 
-module.exports = Guild;
-
+export default Guild
