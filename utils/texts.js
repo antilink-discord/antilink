@@ -15,6 +15,8 @@ export default {
         warns_reason: "Причина:",
 
         setup_successful: "Успішно!",
+        setup_role_removed: "Роль <@&${role}> була успішно видалена з білого списку!",
+        setup_role_not_found: "**❌Не вдалось знайти вказану Вами роль!**",
         setup_logchannel_changed: "Webhook логів було успішно змінено!",
         setup_logchannel_webhoook_isthesame: "**❌Цей webhook уже призначений**",
         setup_whitelist_changed: "Роль успішно додано до whitelist: ${role}",
@@ -52,7 +54,7 @@ export default {
         help_title: "Інформація",
         help_description: "Переконайтеся, що бот має високу роль на сервері.",
         help_field_one: "Список команд",
-        help_value_one: "</ping:1270696551400079428> - показує статус та пінг бота\n</settings:1270696551400079430> - показує налаштування вашої гільдії\n</setup whitelist:1334464985945870398> - додання ролей в білий список на гільдії\n</setup ban_users:1334464985945870398> - вмикає функцію блокування запрошень та коричтувачів в чорному списку\n</setup logchannel:1333589448201470059> - призначає Webhook для логів\n</warns:1327751903269879879> - переглянути список попереджень користувача",
+        help_value_one: "</ping:1335314538568089698> - показує статус та пінг бота\n</settings:1335314538568089695> - показує налаштування вашої гільдії\n</setup whitelist:1335314538568089696> - додання ролей в білий список на гільдії\n</setup ban_users:1334464985945870398> - вмикає функцію блокування запрошень та коричтувачів в чорному списку\n</setup logchannel:1333589448201470059> - призначає Webhook для логів\n</warns:1327751903269879879> - переглянути список попереджень користувача",
         help_field_two: "Корисні посилання",
         help_value_two: "Сервер підтримки",
 
@@ -78,6 +80,8 @@ export default {
         warns_reason: "Reason:",
 
         setup_successful: "Successful!",
+        setup_role_removed: "Role <@&${role}> has been removed from whitelist!",
+        setup_role_not_found: "**❌Failed to find role!**",
         setup_logchannel_changed: "Webhook logs have been successfully changed!",
         setup_logchannel_webhoook_isthesame: "**❌This webhook is already assigned**",
         setup_whitelist_changed: "Role successfully added to the whitelist: ${role}",
