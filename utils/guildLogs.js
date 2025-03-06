@@ -1,7 +1,7 @@
 import { EmbedBuilder, WebhookClient } from 'discord.js';
 import Guild from '../Schemas/guildSchema.js';
 import { get_lang } from '../utils/helper.js';
-import { channel_delete_cache_check } from './anticrashCaching.js'
+// import { channel_delete_cache_check } from './anticrashCaching.js'
 import texts from './texts.js';
 import Logger from './logs.js';
 const lg = new Logger({ prefix: 'Bot' });
@@ -33,57 +33,57 @@ export async function guild_link_delete_log(message, user_id, channel_name) {
 	
 }
 
-export async function guild_channel_delete_log(guild_id, user_id, channel_name) {
-    try {
-        const guildData = await Guild.findOne({ _id: guild_id });
+// export async function guild_channel_delete_log(guild_id, user_id, channel_name) {
+//     try {
+//         const guildData = await Guild.findOne({ _id: guild_id });
 
-        if (!guildData || !guildData.logchannel) return;
+//         if (!guildData || !guildData.logchannel) return;
         
-        const guild_logchannel = guildData.logchannel; // URL вебхука або ID каналу
+//         const guild_logchannel = guildData.logchannel; // URL вебхука або ID каналу
 
 
-        const webhook = new WebhookClient({ url: guild_logchannel });
+//         const webhook = new WebhookClient({ url: guild_logchannel });
 
-        const log_embed = new EmbedBuilder()
-            .setTitle('🗑️ Видалення каналу')
-            .setColor(0x5e66ff)
-            .addFields(
-                { name: 'Видалив', value: `<@${user_id}>`, inline: true }, // Форматуємо ID як згадку
-                { name: 'Канал', value: `#${channel_name}`, inline: false }
-            )
-            .setTimestamp();
+//         const log_embed = new EmbedBuilder()
+//             .setTitle('🗑️ Видалення каналу')
+//             .setColor(0x5e66ff)
+//             .addFields(
+//                 { name: 'Видалив', value: `<@${user_id}>`, inline: true }, // Форматуємо ID як згадку
+//                 { name: 'Канал', value: `#${channel_name}`, inline: false }
+//             )
+//             .setTimestamp();
 
-        await webhook.send({ embeds: [log_embed] });
-    } catch (error) {
-        lg.error('Помилка під час надсилання логу про видалення каналу:', error);
-    }
-}
+//         await webhook.send({ embeds: [log_embed] });
+//     } catch (error) {
+//         lg.error('Помилка під час надсилання логу про видалення каналу:', error);
+//     }
+// }
 
-export async function guild_admin_frozen_log(guild_id, user_id, deleteCount) {
-    try {
-        const guildData = await Guild.findOne({ _id: guild_id });
-        // const deletedChannelsCount = await channel_delete_cache_check(user_id)
-        if (!guildData || !guildData.logchannel) return;
+// export async function guild_admin_frozen_log(guild_id, user_id, deleteCount) {
+//     try {
+//         const guildData = await Guild.findOne({ _id: guild_id });
+//         // const deletedChannelsCount = await channel_delete_cache_check(user_id)
+//         if (!guildData || !guildData.logchannel) return;
         
-        const guild_logchannel = guildData.logchannel; // URL вебхука або ID каналу
+//         const guild_logchannel = guildData.logchannel; // URL вебхука або ID каналу
 
 
-        const webhook = new WebhookClient({ url: guild_logchannel });
+//         const webhook = new WebhookClient({ url: guild_logchannel });
 
-        const log_embed = new EmbedBuilder()
-            .setTitle('Звіт про протидію')
-            .setColor(0x5e66ff)
-            .addFields(
-                { name: 'Потенційний крашер', value: `<@${user_id}>`, inline: true }, 
-                { name: 'Видалено каналів', value: `${deleteCount}` }
-            )
-            .setTimestamp();
+//         const log_embed = new EmbedBuilder()
+//             .setTitle('Звіт про протидію')
+//             .setColor(0x5e66ff)
+//             .addFields(
+//                 { name: 'Потенційний крашер', value: `<@${user_id}>`, inline: true }, 
+//                 { name: 'Видалено каналів', value: `${deleteCount}` }
+//             )
+//             .setTimestamp();
 
-        await webhook.send({ embeds: [log_embed] });
-    } catch (error) {
-        lg.error('Помилка під час надсилання логу про видалення каналу:', error);
-    }
-}
+//         await webhook.send({ embeds: [log_embed] });
+//     } catch (error) {
+//         lg.error('Помилка під час надсилання логу про видалення каналу:', error);
+//     }
+// }
 
 export async function guild_ban_log(message, user_id, channel_name) {
     try{

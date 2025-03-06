@@ -13,7 +13,6 @@ const languagesCache = new Map()
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
 
@@ -68,6 +67,7 @@ export default {
 
 
         lg.info(`Команди, що реєструються: ${commands.map(command => command.name).join(', ')}`);
+        const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
 
         try {
             lg.info('Реєстрація команд...');
