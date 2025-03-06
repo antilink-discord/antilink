@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url';
 import { pathToFileURL } from 'url';
 import { cacheGuildsLanguages } from '../utils/helper.js';
 import Logger from '../utils/logs.js'
-const lg = new Logger('Bot')
+const lg = new Logger({ prefix: 'Bot' });
 
 const languagesCache = new Map()
 const __filename = fileURLToPath(import.meta.url);
@@ -16,8 +16,6 @@ const __dirname = dirname(__filename);
 const token = process.env.TOKEN;
 const clientId = process.env.CLIENT_ID;
 const guildId = process.env.GUILD_ID;
-const Logger = require('../utils/logs');
-lg = new Logger({ prefix: 'Bot' });
 
 export default {
     name: Events.ClientReady,
