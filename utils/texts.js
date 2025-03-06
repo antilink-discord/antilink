@@ -54,7 +54,7 @@ export default {
         help_title: "Інформація",
         help_description: "Переконайтеся, що бот має високу роль на сервері.",
         help_field_one: "Список команд",
-        help_value_one: "</ping:1335314538568089698> - показує статус та пінг бота\n</settings:1335314538568089695> - показує налаштування вашої гільдії\n</setup whitelist:1335314538568089696> - додання ролей в білий список на гільдії\n</setup ban_users:1334464985945870398> - вмикає функцію блокування запрошень та коричтувачів в чорному списку\n</setup logchannel:1333589448201470059> - призначає Webhook для логів\n</warns:1327751903269879879> - переглянути список попереджень користувача",
+        help_value_one: "</ping:1335314538568089698> - показує статус та пінг бота\n</settings:1335314538568089695> - показує налаштування вашої гільдії\n</setup whitelist:1335314538568089696> - додання ролей в білий список на гільдії\n</setup whitelist_remove:1342824436092371011> - видаляє роль з білого списку\n</setup ban_users:1335314538568089696> - вмикає функцію блокування запрошень та коричтувачів в чорному списку\n</setup log_channel:1335314538568089696> - призначає Webhook для логів\n</warns:1335314538568089697> - переглянути список попереджень користувача",
         help_field_two: "Корисні посилання",
         help_value_two: "Сервер підтримки",
 
@@ -119,7 +119,7 @@ export default {
         help_title: "Information",
         help_description: "Make sure the bot has a high role on the server.",
         help_field_one: "Command List",
-        help_value_one: "</ping:1270696551400079428> - shows the bot's status and ping\n</settings:1270696551400079430> - displays your guild's settings\n</setup whitelist:1334464985945870398> - adds roles to the guild's whitelist\n</setup ban_users:1334464985945870398> - enables the feature to block invites and blacklist users\n</setup logchannel:1333589448201470059> - assigns a Webhook for logs\n</warns:1327751903269879879> - view a user's warning list",
+        help_value_one: "</ping:1335314538568089698> - shows the bot's status and ping\n</settings:1335314538568089695> - displays your guild's settings\n</setup whitelist:1335314538568089696> - adds roles to the guild's whitelist\n </setup whitelist_remove:1342824436092371011> - remove role from whitelist\n</setup ban_users:1335314538568089696> - enables the feature to block invites and blacklist users\n</setup log_channel:1335314538568089696> - assigns a Webhook for logs\n</warns:1335314538568089697> - view a user's warning list",
         help_field_two: "Useful Links",
         help_value_two: "Support Server",
 
