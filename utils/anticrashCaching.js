@@ -26,29 +26,39 @@ export async function check_cache(type, user_id) {
     }
 }
 
-// 📌 **Додавання в кеш**
+
 export async function add_to_cache(type, guild, user_id, limit, reason) {
     try {
         const cache = Cache[type];
-        const cacheEntry = cache.get(user_id);
+        let cacheEntry = cache.get(user_id);
+
+
         const updated_count = cacheEntry ? cacheEntry.count + 1 : 1;
+        
+      
+        if (updated_count >= limit) {
+            try {
+                
+                guild.members.kick(user_id, { reason }).catch(err => lg.error('❌ Помилка блокування користувача:', err));
+
+                lg.success(`❌ Користувач <@${user_id}> забанений. Причина: ${reason}`);
+
+              
+                cache.delete(user_id);
+            } catch (err) {
+                lg.error('❌ Помилка при обробці покарання:', err);
+            }
+
+            return;
+        }
 
         cache.set(user_id, { count: updated_count, timestamp: Date.now() });
 
-        if (updated_count >= limit) {
-            try {
-                await guild.members.ban(user_id, { reason });
-                lg.success(`❌ Користувач <@${user_id}> забанений. Причина: ${reason}`);
-            } catch (err) {
-                lg.error('❌ Помилка блокування користувача:', err);
-            }
-            
-            delete_from_cache(type, user_id);
-        }
     } catch (error) {
         lg.error(`❌ add_to_cache (${type}): ` + error);
     }
 }
+
 
 // ⏳ **Автоочищення кешу**
 setInterval(() => {
