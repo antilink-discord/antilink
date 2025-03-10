@@ -4,7 +4,7 @@ import { guild_admin_frozen_log } from '../utils/guildLogs.js';
 import Logger from '../utils/logs.js';
 import { add_channel_create_to_cache, channel_create_cache_check, delete_channel_create_cache } from '../utils/anticrashCaching.js';
 import Guild from '../Schemas/guildSchema.js';
-import { freezeUser } from './onChannelDelete.js';
+import { freezeUser } from './onChannelDelete.js'; // ✅ Правильний імпорт
 
 const lg = new Logger();
 const GuildCache = new Map();
@@ -75,7 +75,7 @@ export default {
                     await guild_admin_frozen_log(guildId, executor.id, createCount);
 
                     // Видаляємо кеш атакера після покарання
-                    delete_channel_create_cache(executor.id);
+                    await delete_channel_create_cache(executor.id);
                 }
 
             } catch (error) {
@@ -85,4 +85,9 @@ export default {
     },
 };
 
-const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.now();
+const isTimedOut = member => {
+    return (
+        (member.communicationDisabledUntilTimestamp && member.communicationDisabledUntilTimestamp > Date.now()) ||
+        !member.kickable
+    );
+};
