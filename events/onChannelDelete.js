@@ -82,7 +82,7 @@ export default {
                     await guild_admin_frozen_log(guildId, executor.id, deleteCount);
 
                     // Очищаємо кеш атакера після покарання
-                    delete_channel_delete_cache(executor.id);
+                    // delete_channel_delete_cache(executor.id);
                 }
 
             } catch (error) {
