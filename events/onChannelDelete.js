@@ -1,4 +1,4 @@
-import { Events, AuditLogEvent, PermissionFlagsBits } from 'discord.js';
+import { Events, AuditLogEvent } from 'discord.js';
 import 'dotenv/config';
 import { guild_channel_delete_log, guild_admin_frozen_log } from '../utils/guildLogs.js';
 import Logger from '../utils/logs.js';
@@ -7,20 +7,24 @@ import Guild from '../Schemas/guildSchema.js';
 
 const lg = new Logger();
 const GuildCache = new Map();
-const CACHE_TTL = 10 * 60 * 1000; // 10 хвилин
+const MemberCache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 хвилин
+const DELETE_LIMIT = 3; // Ліміт видалень перед покаранням
 
 export default {
     name: Events.ChannelDelete,
     once: false,
     async execute(channel) {
         try {
-            let cachedGuildData = GuildCache.get(channel.guild.id);
+            const guildId = channel.guild.id;
+            let cachedGuildData = GuildCache.get(guildId);
 
+            // Перевіряємо кеш гільдії
             if (!cachedGuildData || (Date.now() - cachedGuildData.timestamp) > CACHE_TTL) {
-                const guildData = await Guild.findOne({ _id: channel.guild.id });
+                const guildData = await Guild.findOne({ _id: guildId }).lean();
                 if (guildData) {
                     cachedGuildData = { guildData, timestamp: Date.now() };
-                    GuildCache.set(channel.guild.id, cachedGuildData);
+                    GuildCache.set(guildId, cachedGuildData);
                 } else {
                     return;
                 }
@@ -28,100 +32,70 @@ export default {
 
             if (!cachedGuildData?.guildData?.antiCrashMode) return;
 
-            let fetchedLogs;
-            try {
-                fetchedLogs = await channel.guild.fetchAuditLogs({
-                    type: AuditLogEvent.ChannelDelete,
-                    limit: 1,
-                });
-            } catch (error) {
-                return lg.error('❌ Помилка отримання логів аудиту', error);
-            }
+            // Отримуємо останній лог аудиту
+            const fetchedLogs = await channel.guild.fetchAuditLogs({ type: AuditLogEvent.ChannelDelete, limit: 1 }).catch(() => null);
+            if (!fetchedLogs) return;
 
             const logEntry = fetchedLogs.entries.first();
-            if (!logEntry || Date.now() - logEntry.createdTimestamp > 10_000) return;
+            if (!logEntry || Date.now() - logEntry.createdTimestamp > 5000) return;
 
             const executor = logEntry.executor;
-            if (!executor) return console.log('❌ Не вдалося отримати користувача.');
+            if (!executor) return lg.warn('❌ Не вдалося отримати користувача.');
 
-            let member = channel.guild.members.cache.get(executor.id) || await channel.guild.members.fetch(executor.id).catch(() => null);
-            if (!member || channel.guild.ownerId == executor.id) {
-                lg.warn('Нема учасника, або канал видалив власник гільдії')
-                return
+            // Отримуємо учасника з кешу або Discord API
+            let member = MemberCache.get(executor.id) || channel.guild.members.cache.get(executor.id);
+            if (!member) {
+                member = await channel.guild.members.fetch(executor.id).catch(() => null);
+                if (member) MemberCache.set(executor.id, member);
             }
 
-            await guild_channel_delete_log(channel.guild.id, executor.id, channel.name);
-            await add_channel_delete_to_cache(channel.guild, executor.id);
+            if (!member) {
+                lg.warn('Немає учасника');
+                return;
+            }
+            if (channel.guild.ownerId === executor.id) {
+                lg.warn('Канал видалив власник гільдії');
+                return;
+            }
 
+            // Оновлюємо кеш видалень + лог
+            await Promise.all([
+                guild_channel_delete_log(guildId, executor.id, channel.name),
+                add_channel_delete_to_cache(channel.guild, executor.id)
+            ]);
+
+            // Перевіряємо скільки каналів він видалив
             const deleteCount = await channel_delete_cache_check(executor.id);
-            if (deleteCount >= 3) {
-                try {
-                    await freezeUser(channel.guild, executor.id);
-                } catch (error) {
-                    lg.error('Помилка при спробі заморозити користувача', error);
-                }
 
+            // Покарання тільки якщо перевищено ліміт
+            if (deleteCount >= DELETE_LIMIT) {
                 if (!isTimedOut(member)) {
-                    member.timeout(60_000).catch(() => {});
+                    await freezeUser(channel.guild, executor.id);
                 }
-
-                try {
-                    await guild_admin_frozen_log(channel.guild.id, executor.id, deleteCount);
-                } catch (error) {
-                    lg.error('❌ Помилка відправлення вебхуку', error);
-                }
+                await guild_admin_frozen_log(guildId, executor.id, deleteCount);
             }
 
         } catch (error) {
-            console.error('Помилка при обробці видалення каналу:', error);
+            console.error('❌ Помилка при обробці видалення каналу:', error);
         }
     },
 };
 
-function isTimedOut(member) {
-    return !!(member.communicationDisabledUntilTimestamp && member.communicationDisabledUntilTimestamp > Date.now());
-}
+const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.now();
 
-async function freezeUser(guild, userId) {
+export async function freezeUser(guild, userId) {
     try {
-        const member = await guild.members.fetch(userId);
+        const member = MemberCache.get(userId) || guild.members.cache.get(userId);
         if (!member) {
             lg.info('Користувач не знайдений.');
             return;
         }
-
-        // Отримуємо всі ролі, які мають адмінські права
-        const adminRoles = member.roles.cache.filter(role => 
-            role.permissions.has(PermissionFlagsBits.Administrator)
-        );
-
-        if (adminRoles.size === 0) {
-            lg.warn(`⚠️ Користувач ${member.user.tag} не має адмінських ролей.`);
-            return;
-        }
-
-        lg.info(`⏳ Заморожую ${member.user.tag}...`);
-
-        // Видаляємо всі ролі з адмінськими правами
-        try{
-            if(adminRoles) {
-                await member.roles.remove(adminRoles);
-            }
-            
-        }catch(error) {
-            try{
-                if(member) {
-                    await member.ban()
-                }
-            }catch(error) {
-                lg.error('Не вдалось заблокувати користувача.')
-            }
-            
-        }
         
+        await member.kick().catch(e => {
+            lg.error('❌ Помилка при спробі кікнути користувача:', e);
+        });
 
-        lg.success(`Користувач ${member.user.tag} успішно заморожений!`);
-
+        lg.success(`❄️ Користувач ${member.user.tag} успішно заморожений!`);
     } catch (error) {
         lg.error('❌ Помилка при замороженні користувача:', error);
     }

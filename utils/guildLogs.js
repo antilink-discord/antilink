@@ -85,6 +85,29 @@ export async function guild_admin_frozen_log(guild_id, user_id, deleteCount) {
     }
 }
 
+// export async function guild_channel_create_log(guild_id, user_id, channel_name) {
+//     try {
+//         const guildData = await Guild.findOne({ _id: guild_id });
+//         if (!guildData || !guildData.logchannel) return;
+        
+//         const webhook = new WebhookClient({ url: guildData.logchannel });
+
+//         const log_embed = new EmbedBuilder()
+//             .setTitle('➕ Створення каналу')
+//             .setColor(0x5e66ff)
+//             .addFields(
+//                 { name: 'Створив', value: `<@${user_id}>`, inline: true }, 
+//                 { name: 'Канал', value: `#${channel_name}`, inline: false }
+//             )
+//             .setTimestamp();
+
+//         await webhook.send({ embeds: [log_embed] });
+//     } catch (error) {
+//         lg.error('Помилка під час надсилання логу про створення каналу:', error);
+//     }
+// }
+
+
 export async function guild_ban_log(message, user_id, channel_name) {
     try{
         const guildData = await Guild.findOne({ _id: message.guild.id });

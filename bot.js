@@ -56,9 +56,11 @@ async function loadEvents() {
 
 async function start_bot(client, token, mongoURI) {
     try {
-        await loadEvents();
-        await mongodbConnect(mongoURI);
-        await client.login(token);
+        await Promise.all([
+            loadEvents(),
+            mongodbConnect(mongoURI),
+            client.login(token),
+        ])
     } catch (error) {
         lg.error('Виникла помилка при спробі запустити бота(start_bot):', error);
         return;

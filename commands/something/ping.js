@@ -18,21 +18,21 @@ export async function execute(interaction) {
 		}
 
         const lang = await get_lang(interaction.client, interaction.guild.id);
-        const sent = await interaction.deferReply({ content: 'Pinging...', fetchReply: true});
         
         const duration = moment.duration(interaction.client.uptime);
         const uptime = `${duration.days()}d ${duration.hours()}h ${duration.minutes()}m ${duration.seconds()}s`;
+        const ping = interaction.client.ws.ping;
 
         const embed = new EmbedBuilder()
             .setColor(0x427bff)
             .setTitle(texts[lang].test)
             .addFields(
-                { name: texts[lang].ping_field1, value: `${sent.createdTimestamp - interaction.createdTimestamp}ms`, inline: true },
+                { name: texts[lang].ping_field1, value: `${ping}`, inline: true },
                 { name: texts[lang].ping_field2, value: `${uptime}`, inline: true },
                 { name: texts[lang].ping_field3, value: `\`\`discord.js v${version}\`\``, inline: false }
             )
             .setTimestamp();
-                await interaction.editReply({ content: '', embeds: [embed] });
+                await interaction.reply({ content: '', embeds: [embed] });
             
     } catch (error) {
         lg.error('Помилка у виконанні команди /ping:', error);

@@ -1,63 +1,99 @@
 import Logger from './logs.js';
 const lg = new Logger({ prefix: 'Bot' });
 
-const ChannelDeleteCache = new Map();
-const CACHE_TTL = 10 * 60 * 1000; // 10 хв збереження кешу
-const DELETE_LIMIT = 5; // Ліміт видалень каналів перед покаранням
+const CACHE_TTL = 10 * 60 * 1000; // 10 хвилин кешу
+const DELETE_LIMIT = 5; // Ліміт дій перед покаранням
 
+const Cache = {
+    ChannelDelete: new Map(),
+    ChannelCreate: new Map()
+};
+
+// 🔍 **Перевірка кешу**
+export async function check_cache(type, user_id) {
+    try {
+        const cache = Cache[type];
+        const cacheEntry = cache.get(user_id);
+
+        if (cacheEntry && (Date.now() - cacheEntry.timestamp) < CACHE_TTL) {
+            return cacheEntry.count;
+        }
+
+        cache.set(user_id, { count: 0, timestamp: Date.now() });
+        return 0;
+    } catch (error) {
+        lg.error(`❌ check_cache (${type}): ` + error);
+    }
+}
+
+// 📌 **Додавання в кеш**
+export async function add_to_cache(type, guild, user_id, limit, reason) {
+    try {
+        const cache = Cache[type];
+        const cacheEntry = cache.get(user_id);
+        const updated_count = cacheEntry ? cacheEntry.count + 1 : 1;
+
+        cache.set(user_id, { count: updated_count, timestamp: Date.now() });
+
+        if (updated_count >= limit) {
+            try {
+                await guild.members.ban(user_id, { reason });
+                lg.success(`❌ Користувач <@${user_id}> забанений. Причина: ${reason}`);
+            } catch (err) {
+                lg.error('❌ Помилка блокування користувача:', err);
+            }
+            
+            delete_from_cache(type, user_id);
+        }
+    } catch (error) {
+        lg.error(`❌ add_to_cache (${type}): ` + error);
+    }
+}
+
+// ⏳ **Автоочищення кешу**
+setInterval(() => {
+    const now = Date.now();
+    for (const type in Cache) {
+        const keysToDelete = [];
+        for (const [user_id, cacheEntry] of Cache[type]) {
+            if ((now - cacheEntry.timestamp) >= CACHE_TTL) {
+                keysToDelete.push(user_id);
+            }
+        }
+        keysToDelete.forEach(user_id => delete_from_cache(type, user_id));
+    }
+}, CACHE_TTL);
+
+// ❌ **Видалення з кешу**
+export function delete_from_cache(type, user_id) {
+    try {
+        if (Cache[type].has(user_id)) {
+            Cache[type].delete(user_id);
+            lg.info(`🗑 Видалено користувача ${user_id} з кешу (${type})`);
+        }
+    } catch (error) {
+        lg.error(`❌ delete_from_cache (${type}): ` + error);
+    }
+}
+
+// 🔄 **Функції для конкретних дій**
 export async function channel_delete_cache_check(user_id) {
-	try {
-		const cacheEntry = ChannelDeleteCache.get(user_id);
-
-		if (cacheEntry && (Date.now() - cacheEntry.timestamp) < CACHE_TTL) {
-			return cacheEntry.count;
-		}
-
-		ChannelDeleteCache.set(user_id, { count: 0, timestamp: Date.now() });
-		return 0;
-	} catch (error) {
-		lg.error('channel_delete_cache_check: ' + error);
-	}
+    return check_cache('ChannelDelete', user_id);
 }
 
 export async function add_channel_delete_to_cache(guild, user_id) {
-	try {
-		const cacheEntry = ChannelDeleteCache.get(user_id);
-		const updated_count = cacheEntry ? cacheEntry.count + 1 : 1;
-
-		ChannelDeleteCache.set(user_id, { count: updated_count, timestamp: Date.now() });
-
-		if (updated_count >= DELETE_LIMIT) {
-			try {
-				await guild.members.ban(user_id, { reason: 'Анти-краш: масове видалення каналів' });
-				console.log(`❌ Користувач <@${user_id}> був забанений за масове видалення каналів.`);
-			} catch (err) {
-				console.error('❌ Помилка під час блокування користувача:', err);
-			}
-
-			delete_channel_delete_cache(user_id);
-		}
-	} catch (error) {
-		lg.error('add_channel_delete_to_cache: ' + error);
-	}
+    return add_to_cache('ChannelDelete', guild, user_id, DELETE_LIMIT, 'Анти-краш: масове видалення каналів');
 }
 
-// Очищення кешу кожні CACHE_TTL хвилин
-setInterval(() => {
-	const now = Date.now();
-	for (const [user_id, cacheEntry] of ChannelDeleteCache) {
-		if ((now - cacheEntry.timestamp) >= CACHE_TTL) {
-			delete_channel_delete_cache(user_id);
-		}
-	}
-}, CACHE_TTL);
+export async function channel_create_cache_check(user_id) {
+    return check_cache('ChannelCreate', user_id);
+}
 
-export function delete_channel_delete_cache(user_id) {
-	try {
-		if (ChannelDeleteCache.has(user_id)) {
-			ChannelDeleteCache.delete(user_id);
-		}
-	} catch (error) {
-		lg.error('delete_channel_delete_cache: ' + error);
-	}
+export async function add_channel_create_to_cache(guild, user_id) {
+    return add_to_cache('ChannelCreate', guild, user_id, DELETE_LIMIT, 'Анти-краш: масове створення каналів');
+}
+
+// 🆕 **Видалення кешу створення каналів**
+export async function delete_channel_create_cache(user_id) {
+    delete_from_cache('ChannelCreate', user_id);
 }
