@@ -9,7 +9,6 @@ import {
 import Guild from '../Schemas/guildSchema.js';
 
 const lg = new Logger();
-
 const GuildCache = new Map();
 const MemberCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 хвилин
