@@ -34,6 +34,19 @@ import { check_owner_permission } from '../../utils/settingsHandler.js';
 				),
 
 		)
+        .addSubcommand(subcommand =>
+			subcommand
+				.setName('antinuke_whitelist')
+				.setDescription('Додає вказану роль в білий список системи antinuke')
+				.addRoleOption(option =>
+					option
+						.setName('role')
+						.setDescription('Вибрана роль буде додана в білий список системи antinuke')
+						.setRequired(true),
+
+				),
+
+		)
 		.addSubcommand(subcommand =>
 			subcommand
 				.setName('ban_users')
@@ -225,6 +238,39 @@ import { check_owner_permission } from '../../utils/settingsHandler.js';
 				return;
 			}
 		}
+
+        if (interaction.options.getSubcommand() === 'antinuke_whitelist') {
+            const lang = await get_lang(interaction.client, interaction.guild.id);
+			try {
+				const role = interaction.options.getRole('role');
+
+				let guildData = await Guild.findOne({ _id: interaction.guild.id });
+				if (!guildData) {
+					guildData = new Guild({ _id: interaction.guild.id });
+					await guildData.save();
+				}
+				if (!guildData.antinuke_whitelist.includes(role.id)) {
+
+					guildData.antinuke_whitelist.push(role.id);
+					await guildData.save();
+					const SuccessfullEmbed = new EmbedBuilder()
+						.setColor(colors.SUCCESSFUL_COLOR)
+						.setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 1024 }))
+						.setTitle(texts[lang].setup_successful)
+						.setDescription('Роль успішно додана');
+					await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
+				}
+				else {
+					await interaction.reply({ content: texts[lang].setup_whitelist_already_is, flags: MessageFlags.Ephemeral });
+				}
+			}
+			catch (error) {
+				await interaction.reply(texts[lang].main_error_message);
+				lg.error('setup_whitelist error' + error);
+				return;
+			}
+		}
+
 		if (interaction.options.getSubcommand() === 'language') {
 			const isOwner = await check_owner_permission(interaction);
             const lang = await get_lang(interaction.client, interaction.guild.id);

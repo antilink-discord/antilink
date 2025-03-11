@@ -11,6 +11,10 @@ const guildSchema = new mongoose.Schema({
 		type: [String],
 		default: [],
 	},
+    antinuke_whitelist: {
+		type: [String],
+		default: [],
+	},
 	logchannel: {
 		type: String,
 		default: null,

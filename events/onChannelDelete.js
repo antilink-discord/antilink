@@ -9,6 +9,7 @@ import {
 import Guild from '../Schemas/guildSchema.js';
 
 const lg = new Logger();
+
 const GuildCache = new Map();
 const MemberCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 хвилин
@@ -66,7 +67,7 @@ export default {
                 }
 
                 // Оновлюємо кеш видалень + лог
-                await Promise.all([
+                await Promise.all([ 
                     guild_channel_delete_log(guildId, executor.id, channel.name),
                     add_channel_delete_to_cache(channel.guild, executor.id)
                 ]);

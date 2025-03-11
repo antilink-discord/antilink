@@ -74,9 +74,8 @@ export default {
         try {
             lg.info('Реєстрація команд...');
             await rest.put(
-                Routes.applicationGuildCommands(clientId, guildId), {
-                    body: commands,
-                },
+                Routes.applicationCommands(clientId), 
+                { body: commands }
             );
             lg.success('Локальні команди успішно зареєстровані!');
         } catch (error) {

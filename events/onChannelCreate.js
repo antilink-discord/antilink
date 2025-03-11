@@ -1,16 +1,16 @@
-import { Events, AuditLogEvent } from 'discord.js';
+import { Events } from 'discord.js';
 import 'dotenv/config';
-import { guild_admin_frozen_log } from '../utils/guildLogs.js';
+import { guild_channel_create_log } from '../utils/guildLogs.js';
 import Logger from '../utils/logs.js';
-import { add_channel_create_to_cache, channel_create_cache_check, delete_channel_create_cache } from '../utils/anticrashCaching.js';
+import { add_channel_create_to_cache, channel_create_cache_check } from '../utils/anticrashCaching.js';
 import Guild from '../Schemas/guildSchema.js';
-import { freezeUser } from './onChannelDelete.js'; // ✅ Правильний імпорт
 
 const lg = new Logger();
+
 const GuildCache = new Map();
 const MemberCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 хвилин
-const CREATE_LIMIT = 3; // Ліміт створень каналів перед покаранням
+const CREATE_LIMIT = 3; // Ліміт створень перед покаранням
 
 export default {
     name: Events.ChannelCreate,
@@ -21,6 +21,7 @@ export default {
                 const guildId = channel.guild.id;
                 let cachedGuildData = GuildCache.get(guildId);
 
+                // Перевіряємо кеш гільдії
                 if (!cachedGuildData || (Date.now() - cachedGuildData.timestamp) > CACHE_TTL) {
                     const guildData = await Guild.findOne({ _id: guildId }).lean();
                     if (guildData) {
@@ -33,49 +34,19 @@ export default {
 
                 if (!cachedGuildData?.guildData?.antiCrashMode) return;
 
-                // Отримуємо останній лог аудиту (створення каналу)
-                const fetchedLogs = await channel.guild.fetchAuditLogs({
-                    type: AuditLogEvent.ChannelCreate,
-                    limit: 1
-                }).catch(() => null);
+                // Оновлюємо кеш створень + лог
+                await Promise.all([
+                    guild_channel_create_log(guildId, channel.id, channel.name),
+                    add_channel_create_to_cache(channel.guild, channel.id)
+                ]);
 
-                if (!fetchedLogs) return;
-                const logEntry = fetchedLogs.entries.first();
-                if (!logEntry || Date.now() - logEntry.createdTimestamp > 5000) return;
+                // Перевіряємо скільки каналів він створив
+                const createCount = await channel_create_cache_check(channel.id);
 
-                const executor = logEntry.executor;
-                if (!executor) return lg.warn('❌ Не вдалося отримати користувача.');
-
-                // Отримуємо учасника з кешу або Discord API
-                let member = MemberCache.get(executor.id) || channel.guild.members.cache.get(executor.id);
-                if (!member) {
-                    member = await channel.guild.members.fetch(executor.id).catch(() => null);
-                    if (member) MemberCache.set(executor.id, member);
-                }
-
-                if (!member) {
-                    lg.warn('Немає учасника');
-                    return;
-                }
-                if (channel.guild.ownerId === executor.id) {
-                    lg.warn('Канал створив власник гільдії');
-                    return;
-                }
-
-                // Оновлюємо кеш створень каналів
-                await add_channel_create_to_cache(channel.guild, executor.id);
-
-                // Перевіряємо, скільки каналів створено
-                const createCount = await channel_create_cache_check(executor.id);
-
+                // Покарання тільки якщо перевищено ліміт
                 if (createCount >= CREATE_LIMIT) {
-                    if (!isTimedOut(member)) {
-                        await freezeUser(channel.guild, executor.id);
-                    }
-                    await guild_admin_frozen_log(guildId, executor.id, createCount);
-
-                    // Видаляємо кеш атакера після покарання
-                    await delete_channel_create_cache(executor.id);
+                    await freezeUser(channel.guild, channel.id);
+                    await guild_channel_create_log(guildId, channel.id, createCount);
                 }
 
             } catch (error) {
@@ -85,9 +56,35 @@ export default {
     },
 };
 
-const isTimedOut = member => {
-    return (
-        (member.communicationDisabledUntilTimestamp && member.communicationDisabledUntilTimestamp > Date.now()) ||
-        !member.kickable
-    );
-};
+// Функція для блокування порушника (timeout або ban замість кіка)
+export async function freezeUser(guild, channelId) {
+    try {
+        const channel = guild.channels.cache.get(channelId);
+        if (!channel) {
+            lg.info('Канал не знайдений.');
+            return;
+        }
+
+        // Якщо бот має право — даємо timeout на 10 хвилин
+        if (channel.deletable) {
+            await channel.delete('Антикраш: занадто багато створених каналів')
+                .catch(e => lg.error('❌ Помилка при видаленні каналу:', e));
+
+            lg.success(`❄️ Канал ${channel.name} був видалений!`);
+        }
+        // Якщо бот має право банити
+        else if (guild.members.me.permissions.has('KICK_MEMBERS')) {
+            await channel.delete({ reason: 'Антикраш: занадто багато створених каналів' })
+                .catch(e => lg.error('❌ Помилка при бані:', e));
+
+            lg.success(`🚨 Канал ${channel.name} забанений!`);
+        }
+        // Якщо бот не може нічого зробити
+        else {
+            lg.warn('❌ Бот не має прав для покарання каналу.');
+        }
+
+    } catch (error) {
+        lg.error('❌ Помилка при замороженні каналу:', error);
+    }
+}
