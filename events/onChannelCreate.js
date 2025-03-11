@@ -1,6 +1,5 @@
 import { Events } from 'discord.js';
 import 'dotenv/config';
-import { guild_channel_create_log } from '../utils/guildLogs.js';
 import Logger from '../utils/logs.js';
 import { add_channel_create_to_cache, channel_create_cache_check } from '../utils/anticrashCaching.js';
 import Guild from '../Schemas/guildSchema.js';
@@ -36,7 +35,7 @@ export default {
 
                 // Оновлюємо кеш створень + лог
                 await Promise.all([
-                    guild_channel_create_log(guildId, channel.id, channel.name),
+                    // guild_channel_create_log(guildId, channel.id, channel.name),
                     add_channel_create_to_cache(channel.guild, channel.id)
                 ]);
 
@@ -46,7 +45,7 @@ export default {
                 // Покарання тільки якщо перевищено ліміт
                 if (createCount >= CREATE_LIMIT) {
                     await freezeUser(channel.guild, channel.id);
-                    await guild_channel_create_log(guildId, channel.id, createCount);
+                    // await guild_channel_create_log(guildId, channel.id, createCount);
                 }
 
             } catch (error) {
