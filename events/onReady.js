@@ -29,6 +29,7 @@ export default {
         await cacheGuildsLanguages(client, guilds)
 
         client.user.setPresence({ activities: [{ name: '/help' }]});
+
         async function loadCommands(folderPath) {
             const entries = fs.readdirSync(folderPath, { withFileTypes: true });
             for (const entry of entries) {
@@ -37,6 +38,7 @@ export default {
                 // Якщо це папка, запускаємо рекурсію
                 if (entry.isDirectory()) {
                     await loadCommands(fullPath);
+                    
                 } else if (entry.isFile() && entry.name.endsWith('.js')) {
                     // Перетворюємо шлях до файлу на file:// URL
                     const fileURL = pathToFileURL(fullPath).href;
@@ -72,9 +74,8 @@ export default {
         try {
             lg.info('Реєстрація команд...');
             await rest.put(
-                Routes.applicationGuildCommands(clientId, guildId), {
-                    body: commands,
-                },
+                Routes.applicationCommands(clientId), 
+                { body: commands }
             );
             lg.success('Локальні команди успішно зареєстровані!');
         } catch (error) {
