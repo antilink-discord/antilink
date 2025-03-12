@@ -31,7 +31,7 @@ export default {
                     }
                 }
 
-                if (!cachedGuildData?.guildData?.antiCrashMode) return;
+                // if (!cachedGuildData?.guildData?.antiCrashMode) return;
 
                 // Оновлюємо кеш створень + лог
                 await Promise.all([

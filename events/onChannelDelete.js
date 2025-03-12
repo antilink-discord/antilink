@@ -27,43 +27,70 @@ export default {
                 // Перевіряємо кеш гільдії
                 if (!cachedGuildData || (Date.now() - cachedGuildData.timestamp) > CACHE_TTL) {
                     const guildData = await Guild.findOne({ _id: guildId }).lean();
+                    lg.debug('Звернення до бази даних, немає даних про гільдію');
                     if (guildData) {
                         cachedGuildData = { guildData, timestamp: Date.now() };
                         GuildCache.set(guildId, cachedGuildData);
                     } else {
-                        return;
+                        return lg.error('Немає даних для цієї гільдії.');
                     }
                 }
 
-                if (!cachedGuildData?.guildData?.antiCrashMode) return;
+                // Якщо гільдія має antiCrashMode увімкнений, здійснюємо додаткові дії
+                // if (!cachedGuildData?.guildData?.antiCrashMode) {
+                //     return lg.error('Немає даних для антикрашу.');
+                // }
 
-                // Отримуємо останній лог аудиту (видалення каналу)
+                // Отримуємо логи видалення каналу
                 const fetchedLogs = await channel.guild.fetchAuditLogs({
                     type: AuditLogEvent.ChannelDelete,
                     limit: 1
                 }).catch(() => null);
 
-                if (!fetchedLogs) return;
+                if (!fetchedLogs) {
+                    lg.warn('Немає логів аудиту для цього видалення каналу.');
+                    return;
+                }
+
                 const logEntry = fetchedLogs.entries.first();
-                if (!logEntry || Date.now() - logEntry.createdTimestamp > 5000) return;
+                if (!logEntry || Date.now() - logEntry.createdTimestamp > 5000) {
+                    lg.warn('Лог не знайдений або занадто старий.');
+                    return;
+                }
 
+                // Отримуємо executor (користувача, який видалив канал)
                 const executor = logEntry.executor;
-                if (!executor) return lg.warn('❌ Не вдалося отримати користувача.');
+                if (!executor) {
+                    lg.warn('❌ Не вдалося отримати користувача з логів.');
+                    return;
+                }
 
-                // Отримуємо учасника з кешу або Discord API
+                // Отримуємо учасника, який виконав дію
                 let member = MemberCache.get(executor.id) || channel.guild.members.cache.get(executor.id);
                 if (!member) {
                     member = await channel.guild.members.fetch(executor.id).catch(() => null);
                     if (member) MemberCache.set(executor.id, member);
                 }
-
+                lg.debug(MemberCache)
                 if (!member) {
-                    lg.warn('Немає учасника');
+                    lg.warn('Не вдалося отримати учасника.');
                     return;
                 }
-                if (channel.guild.ownerId === executor.id) {
-                    lg.warn('Канал видалив власник гільдії');
-                    return;
+
+                // Перевірка на дозволену роль
+                const memberRoles = member.roles.cache; // Отримуємо ролі користувача
+                const guildData = await Guild.findOne({ _id: channel.guild.id });
+                const whitelist_data = guildData?.antinuke_whitelist ?? [];
+                lg.info(whitelist_data)
+                lg.info(`user_roles:`, memberRoles)
+                
+                const hasWhitelistedRole = memberRoles.some(role => whitelist_data.includes(role.id));
+                lg.info('hasWhitelistedRole?', hasWhitelistedRole)
+                if (hasWhitelistedRole) {
+                    lg.info('Користувач має дозволену роль, пропускаємо перевірку.');
+                    return; // Якщо має дозволену роль, пропускаємо виконання подальших дій
+                } else {
+                    lg.warn('Користувач не має дозволеної ролі.');
                 }
 
                 // Оновлюємо кеш видалень + лог
@@ -90,7 +117,7 @@ export default {
                 console.error('❌ Помилка при обробці видалення каналу:', error);
             }
         });
-    },
+    }
 };
 
 // Функція для блокування порушника (timeout або ban замість кіка)
