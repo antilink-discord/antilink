@@ -81,6 +81,7 @@ export default {
                 const memberRoles = member.roles.cache; // Отримуємо ролі користувача
                 const guildData = await Guild.findOne({ _id: channel.guild.id });
                 const whitelist_data = guildData?.antinuke_whitelist ?? [];
+                
                 lg.info(whitelist_data)
                 lg.info(`user_roles:`, memberRoles)
                 

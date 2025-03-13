@@ -86,7 +86,6 @@ export function delete_from_cache(type, user_id) {
     }
 }
 
-// 🔄 **Функції для конкретних дій**
 export async function channel_delete_cache_check(user_id) {
     return check_cache('ChannelDelete', user_id);
 }
@@ -103,7 +102,7 @@ export async function add_channel_create_to_cache(guild, user_id) {
     return add_to_cache('ChannelCreate', guild, user_id, DELETE_LIMIT, 'Анти-краш: масове створення каналів');
 }
 
-// 🆕 **Видалення кешу створення каналів**
+
 export async function delete_channel_create_cache(user_id) {
     delete_from_cache('ChannelCreate', user_id);
 }
