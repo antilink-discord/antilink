@@ -106,3 +106,7 @@ export async function add_channel_create_to_cache(guild, user_id) {
 export async function delete_channel_create_cache(user_id) {
     delete_from_cache('ChannelCreate', user_id);
 }
+
+export async function delete_channel_delete_cache(user_id) {
+    delete_from_cache('ChannelDelete', user_id);
+}

@@ -61,6 +61,20 @@ import { check_owner_permission } from '../../utils/settingsHandler.js';
 
 						)),
 		)
+        .addSubcommand(subcommand =>
+			subcommand
+				.setName('antinuke')
+				.setDescription('Вмикає на сервері функцію анти-крашу гільдії')
+				.addStringOption(option =>
+					option.setName('param')
+						.setDescription('Виберіть параметр')
+						.setRequired(true)
+						.addChoices(
+							{ name: 'увімкнути', value: 'true' },
+							{ name: 'вимкнути', value: 'false' },
+
+						)),
+		)
 		.addSubcommand(subcommand =>
 			subcommand
 				.setName('language')
@@ -345,6 +359,66 @@ import { check_owner_permission } from '../../utils/settingsHandler.js';
 							await Guild.updateOne(
 								{ _id: interaction.guild.id },
 								{ $set: { blocking_enabled: false } },
+							);
+							const SuccessfullEmbed = new EmbedBuilder()
+								.setColor(colors.SUCCESSFUL_COLOR)
+								.setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 1024 }))
+								.setTitle(texts[lang].setup_successful)
+								.setDescription(texts[lang].setup_banusers_disabled);
+							await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
+						}
+						catch (error) {
+							lg.error(error);
+						}
+					}
+
+				}
+				catch (error) {
+					lg.error(error);
+				}
+			}
+
+		}
+        if (interaction.options.getSubcommand() === 'antinuke') {
+            const lang = await get_lang(interaction.client, interaction.guild.id);
+			const isOwner = await check_owner_permission(interaction);
+			if (isOwner === true) {
+				try {
+
+					const choice = interaction.options.getString('param');
+					const guildData = await Guild.findOne({ _id: interaction.guild.id });
+					const isChoiceTrue = choice === 'true';
+
+					if (!guildData) {
+						guildData = new Guild({ _id: interaction.guild.id });
+						await guildData.save();
+					}
+					if (guildData.antiCrashMode === isChoiceTrue) { // Перевірка, чи було введено той самий параметр, який вже встановлений на сервері
+						await interaction.reply(texts[lang].setup_banusers_isthesame);
+						return;
+					}
+					if (choice === 'true') {
+						try {
+							await Guild.updateOne(
+								{ _id: interaction.guild.id },
+								{ $set: { antiCrashMode: true } },
+							);
+							const SuccessfullEmbed = new EmbedBuilder()
+								.setColor(colors.SUCCESSFUL_COLOR)
+								.setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 1024 }))
+								.setTitle(texts[lang].setup_successful)
+								.setDescription(texts[lang].setup_banusers_enabled);
+							await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
+						}
+						catch (error) {
+							lg.error(error);
+						}
+					}
+					else if (choice === 'false') {
+						try {
+							await Guild.updateOne(
+								{ _id: interaction.guild.id },
+								{ $set: { antiCrashMode: false } },
 							);
 							const SuccessfullEmbed = new EmbedBuilder()
 								.setColor(colors.SUCCESSFUL_COLOR)

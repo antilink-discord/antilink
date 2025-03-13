@@ -5,13 +5,12 @@ import Logger from '../utils/logs.js';
 import { 
     add_channel_delete_to_cache, 
     channel_delete_cache_check
-} from '../utils/anticrashCaching.js';
+} from '../utils/antinuke.js';
 import Guild from '../Schemas/guildSchema.js';
 
 const lg = new Logger();
 
 const GuildCache = new Map();
-const MemberCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 хвилин
 const DELETE_LIMIT = 3; // Ліміт видалень перед покаранням
 
@@ -66,12 +65,9 @@ export default {
                 }
 
                 // Отримуємо учасника, який виконав дію
-                let member = MemberCache.get(executor.id) || channel.guild.members.cache.get(executor.id);
-                if (!member) {
-                    member = await channel.guild.members.fetch(executor.id).catch(() => null);
-                    if (member) MemberCache.set(executor.id, member);
-                }
-                lg.debug(MemberCache)
+                let member = channel.guild.members.cache.get(executor.id) || await channel.guild.members.fetch(executor.id).catch(() => null);
+
+                lg.debug(`member:`, member)
                 if (!member) {
                     lg.warn('Не вдалося отримати учасника.');
                     return;
@@ -85,8 +81,9 @@ export default {
                 lg.info(whitelist_data)
                 lg.info(`user_roles:`, memberRoles)
                 
-                const hasWhitelistedRole = memberRoles.some(role => whitelist_data.includes(role.id));
+                const hasWhitelistedRole = memberRoles.some(role => whitelist_data.includes(role.id)) || member.id == channel.guild.ownerId;
                 lg.info('hasWhitelistedRole?', hasWhitelistedRole)
+
                 if (hasWhitelistedRole) {
                     lg.info('Користувач має дозволену роль, пропускаємо перевірку.');
                     return; // Якщо має дозволену роль, пропускаємо виконання подальших дій
@@ -110,8 +107,7 @@ export default {
                     }
                     await guild_admin_frozen_log(guildId, executor.id, deleteCount);
 
-                    // Очищаємо кеш атакера після покарання
-                    // delete_channel_delete_cache(executor.id);
+                    await delete_channel_delete_cache(executor.id);
                 }
 
             } catch (error) {
@@ -124,7 +120,7 @@ export default {
 // Функція для блокування порушника (timeout або ban замість кіка)
 export async function freezeUser(guild, userId) {
     try {
-        const member = MemberCache.get(userId) || guild.members.cache.get(userId);
+        const member = guild.members.cache.get(userId) || guild.members.fetch(userId).catch(() => null);
         if (!member) {
             lg.info('Користувач не знайдений.');
             return;
