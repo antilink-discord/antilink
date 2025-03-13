@@ -43,7 +43,7 @@ export default {
 
                 // Отримуємо логи видалення каналу
                 const fetchedLogs = await channel.guild.fetchAuditLogs({
-                    type: AuditLogEvent.ChannelDelete,
+                    type: AuditLogEvent.ChannelCreate,
                     limit: 1
                 }).catch(() => null);
 
