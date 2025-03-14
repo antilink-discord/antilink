@@ -33,10 +33,7 @@ class CacheManager {
             const updated_count = cacheEntry ? cacheEntry.count + 1 : 1;
 
             if (updated_count >= limit) {
-                await guild.members.kick(user_id, { reason })
-                    .catch(err => lg.error('❌ Помилка блокування користувача:', err));
-
-                lg.success(`❌ Користувач <@${user_id}> забанений. Причина: ${reason}`);
+                
                 this.cache.delete(user_id);
                 return;
             }
