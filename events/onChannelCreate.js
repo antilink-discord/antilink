@@ -137,6 +137,11 @@ export async function freezeUser(guild, userId) {
         }
         // Якщо бот має право банити
         else if (guild.members.me.permissions.has('KICK_MEMBERS')) {
+            if (!member.kickable) {
+                lg.warn(`Не можливо вигнати користувача ${member.user.tag} з гільдії.`);
+                return;
+            }
+
             await member.kick({ reason: 'Антикраш: занадто багато видалень каналів' })
                 .catch(e => lg.error('❌ Помилка при бані:', e));
 
@@ -151,6 +156,7 @@ export async function freezeUser(guild, userId) {
         lg.error('❌ Помилка при замороженні користувача:', error);
     }
 }
+
 
 // Перевіряємо, чи користувач у тайм-ауті
 const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.now();
