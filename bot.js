@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Logger from './utils/logs.js';
-import{ Client, Collection, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
+import{ Client, Collection, Events, GatewayIntentBits, Partials} from 'discord.js';
 import 'dotenv/config'
 
 import mongoose from 'mongoose';
@@ -30,7 +30,8 @@ async function mongodbConnect(mongoURI) {
 
 const token = process.env.TOKEN;
 
-export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers] });
+
+export const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildModeration], partials: [Partials.GuildMember, Partials.User] } );
 
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));

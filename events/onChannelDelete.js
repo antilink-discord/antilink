@@ -4,7 +4,8 @@ import { guild_channel_delete_log, guild_admin_frozen_log } from '../utils/guild
 import Logger from '../utils/logs.js';
 import { 
     add_channel_delete_to_cache, 
-    channel_delete_cache_check
+    channel_delete_cache_check,
+    delete_channel_delete_cache
 } from '../utils/antinuke.js';
 import Guild from '../Schemas/guildSchema.js';
 
@@ -36,9 +37,9 @@ export default {
                 }
 
                 // Якщо гільдія має antiCrashMode увімкнений, здійснюємо додаткові дії
-                // if (!cachedGuildData?.guildData?.antiCrashMode) {
-                //     return lg.error('Немає даних для антикрашу.');
-                // }
+                if (!cachedGuildData?.guildData?.antiCrashMode) {
+                    return lg.error('Немає даних для антикрашу.');
+                }
 
                 // Отримуємо логи видалення каналу
                 const fetchedLogs = await channel.guild.fetchAuditLogs({

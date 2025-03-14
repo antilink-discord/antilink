@@ -4,7 +4,8 @@ import { guild_channel_delete_log, guild_admin_frozen_log } from '../utils/guild
 import Logger from '../utils/logs.js';
 import { 
     add_channel_create_to_cache, 
-    channel_create_cache_check
+    channel_create_cache_check,
+    delete_channel_create_cache
 } from '../utils/antinuke.js';
 import Guild from '../Schemas/guildSchema.js';
 
@@ -94,7 +95,7 @@ export default {
                 // Оновлюємо кеш видалень + лог
                 await Promise.all([ 
                     guild_channel_delete_log(guildId, executor.id, channel.name),
-                    add_channel_delete_to_cache(channel.guild, executor.id)
+                    add_channel_create_to_cache(channel.guild, executor.id)
                 ]);
 
                 // Перевіряємо скільки каналів він видалив
@@ -129,7 +130,7 @@ export async function freezeUser(guild, userId) {
 
         // Якщо бот має право — даємо timeout на 10 хвилин
         if (member.moderatable) {
-            await member.timeout(10 * 60 * 1000, 'Антикраш: занадто багато видалень каналів')
+            await member.timeout(3 * 24 * 60 * 60 * 1000, 'Антикраш: занадто багато видалень каналів')
                 .catch(e => lg.error('❌ Помилка при таймауті:', e));
 
             lg.success(`❄️ Користувач ${member.user.tag} отримав таймаут!`);
