@@ -2,7 +2,7 @@ import { Events, AuditLogEvent } from 'discord.js';
 import Guild from '../Schemas/guildSchema.js';
 import Logger from '../utils/logs.js';
 import { add_role_update_to_cache, check_role_update_cache, delete_role_update_cache } from '../utils/antinuke.js';
-import { freezeUser } from './onChannelCreate.js';
+import { freezeUser } from './onChannelDelete.js'
 
 const lg = new Logger();
 const CREATE_LIMIT = 3; // Ліміт створень перед покаранням
