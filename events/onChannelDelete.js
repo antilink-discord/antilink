@@ -9,6 +9,14 @@ import {
 } from '../utils/antinuke.js';
 import Guild from '../Schemas/guildSchema.js';
 
+import { REST } from "@discordjs/rest";
+const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
+
+rest.on("rateLimit", (info) => {
+    console.log(`⏳ Rate limit! Очікуємо ${info.timeout}ms`);
+});
+
+
 const lg = new Logger();
 
 const GuildCache = new Map();
@@ -68,7 +76,7 @@ export default {
                 // Отримуємо учасника, який виконав дію
                 let member = channel.guild.members.cache.get(executor.id) || await channel.guild.members.fetch(executor.id).catch(() => null);
 
-                lg.debug(`member:`, member)
+                // lg.debug(`member:`, member)
                 if (!member) {
                     lg.warn('Не вдалося отримати учасника.');
                     return;
@@ -79,8 +87,8 @@ export default {
                 const guildData = await Guild.findOne({ _id: channel.guild.id });
                 const whitelist_data = guildData?.antinuke_whitelist ?? [];
                 
-                lg.info(whitelist_data)
-                lg.info(`user_roles:`, memberRoles)
+                // lg.info(whitelist_data)
+                // lg.info(`user_roles:`, memberRoles)
                 
                 const hasWhitelistedRole = memberRoles.some(role => whitelist_data.includes(role.id)) || member.id == channel.guild.ownerId;
                 lg.info('hasWhitelistedRole?', hasWhitelistedRole)
@@ -117,6 +125,8 @@ export default {
         });
     }
 };
+
+const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.now();
 
 // Функція для блокування порушника (timeout або ban замість кіка)
 export async function freezeUser(guild, userId) {

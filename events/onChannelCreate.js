@@ -38,7 +38,7 @@ export default {
                     }
                 }
 
-                lg.debug(cachedGuildData)
+                // lg.debug(cachedGuildData)
                 if (!cachedGuildData?.guildData?.antiCrashMode) {
                      return lg.error('Немає даних для антикрашу.');
                  }
@@ -70,7 +70,7 @@ export default {
                 // Отримуємо учасника, який виконав дію
                 let member = channel.guild.members.cache.get(executor.id) || await channel.guild.members.fetch(executor.id).catch(() => null);
 
-                lg.debug(`member:`, member)
+                // lg.debug(`member:`, member)
                 if (!member) {
                     lg.warn('Не вдалося отримати учасника.');
                     return;
@@ -81,11 +81,11 @@ export default {
                 const guildData = await Guild.findOne({ _id: channel.guild.id });
                 const whitelist_data = guildData?.antinuke_whitelist ?? [];
                 
-                lg.info(whitelist_data)
-                lg.info(`user_roles:`, memberRoles)
+                // lg.info(whitelist_data)
+                // lg.info(`user_roles:`, memberRoles)
                 
                 const hasWhitelistedRole = memberRoles.some(role => whitelist_data.includes(role.id)) || member.id == channel.guild.ownerId;
-                lg.info('hasWhitelistedRole?', hasWhitelistedRole)
+                // lg.info('hasWhitelistedRole?', hasWhitelistedRole)
 
                 if (hasWhitelistedRole) {
                     lg.info('Користувач має дозволену роль, пропускаємо перевірку.');
