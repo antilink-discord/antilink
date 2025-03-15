@@ -7,6 +7,8 @@ import {
     channel_create_cache_check,
     delete_channel_create_cache
 } from '../utils/antinuke.js';
+
+import { freezeUser } from './onChannelDelete.js'
 import Guild from '../Schemas/guildSchema.js';
 
 const lg = new Logger();
@@ -118,45 +120,6 @@ export default {
         });
     }
 };
-
-// Функція для блокування порушника (timeout або ban замість кіка)
-export async function freezeUser(guild, userId) {
-    try {
-        const member = guild.members.cache.get(userId) || await guild.members.fetch(userId).catch(() => null);
-        if (!member) {
-            lg.info('Користувач не знайдений.');
-            return;
-        }
-
-        // Якщо бот має право — даємо timeout на 10 хвилин
-        if (member.moderatable) {
-            await member.timeout(3 * 24 * 60 * 60 * 1000, 'Антикраш: занадто багато видалень каналів')
-                .catch(e => lg.error('❌ Помилка при таймауті:', e));
-
-            lg.success(`❄️ Користувач ${member.user.tag} отримав таймаут!`);
-        }
-        // Якщо бот має право банити
-        else if (guild.members.me.permissions.has('KICK_MEMBERS')) {
-            if (!member.kickable) {
-                lg.warn(`Не можливо вигнати користувача ${member.user.tag} з гільдії.`);
-                return;
-            }
-
-            await member.kick({ reason: 'Антикраш: занадто багато видалень каналів' })
-                .catch(e => lg.error('❌ Помилка при бані:', e));
-
-            lg.success(`🚨 Користувач ${member.user.tag} забанений!`);
-        }
-        // Якщо бот не може нічого зробити
-        else {
-            lg.warn('❌ Бот не має прав для покарання користувача.');
-        }
-
-    } catch (error) {
-        lg.error('❌ Помилка при замороженні користувача:', error);
-    }
-}
-
 
 // Перевіряємо, чи користувач у тайм-ауті
 const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.now();
