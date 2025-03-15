@@ -30,7 +30,7 @@ export default {
                 console.log(`Нова аватарка: ${newGuild.iconURL()}`);
                 
                 await newGuild.setIcon(oldGuild.iconURL()).catch(e => { console.log(e)})
-                await freezeUser(newGuild.id, executor.id)
+                await freezeUser(newGuild, executor.id)
                 console.log('Аватарку сервера змінено назад на стару.');
             }
             if (oldGuild.name !== newGuild.name) {
