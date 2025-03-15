@@ -9,12 +9,7 @@ import {
 } from '../utils/antinuke.js';
 import Guild from '../Schemas/guildSchema.js';
 
-import { REST } from "@discordjs/rest";
-const rest = new REST({ version: "10" }).setToken(process.env.TOKEN);
 
-rest.on("rateLimit", (info) => {
-    console.log(`⏳ Rate limit! Очікуємо ${info.timeout}ms`);
-});
 
 
 const lg = new Logger();
