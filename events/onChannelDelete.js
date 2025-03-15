@@ -126,12 +126,15 @@ const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.n
 // Функція для блокування порушника (timeout або ban замість кіка)
 export async function freezeUser(guild, userId) {
     try {
-        const member = guild.members.cache.get(userId) || await guild.members.fetch(userId).catch(() => null);
+        const member = guild.members.cache.get(userId);
         if (!member) {
+            await guild.members.fetch(userId).catch(() => null);
             lg.warn('Користувач не знайдений або вже покинув сервер.');
             return;
         }
 
+        const timeoutDate = new Date();
+        timeoutDate.setDate(timeoutDate.getDate() + 2);  // додаємо 2 дні
         if (!guild.members.me.permissions.has('KICK_MEMBERS')) {
             lg.warn('❌ Бот не має права кікати користувачів.');
             return;
@@ -142,9 +145,21 @@ export async function freezeUser(guild, userId) {
             return;
         }
 
-        await member.ban({ reason: 'Антикраш: занадто багато видалень каналів' })
-        .then(() => lg.success(`🚨 Користувач ${member.user.tag} забанений!`))
-        .catch(err => lg.error('❌ Помилка при бані:', err));
+        try {
+            await member.ban({ reason: 'Антикраш: занадто багато видалень каналів' });
+            console.log(`✅ ${member.user.tag} був забанений.`);
+        } catch (error) {
+            console.error(`❌ Помилка при бані:`, error);
+            
+            if (error.code === 50013) {
+                console.log('❌ Бот не має достатніх прав для бана.');
+            } else if (error.code === 10007) {
+                console.log('❌ Користувач уже покинув сервер.');
+            } else if (error.code === 500) {
+                console.log('❌ Внутрішня помилка Discord API. Спробуйте пізніше.');
+            }
+        }
+            
 
     } catch (error) {
         lg.error('❌ Помилка при замороженні користувача:', error);
