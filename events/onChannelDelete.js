@@ -20,18 +20,18 @@ export default {
             try {
                 const guildId = channel.guild.id;
 
-                const cachedGuildData = await check_guild_cache(guildId)
-                
-                lg.debug(cachedGuildData)
+                const [cachedGuildData, guildData, fetchedLogs] = await Promise.all([
+                    check_guild_cache(guildId),
+                    Guild.findOne({ _id: guildId }),
+                    channel.guild.fetchAuditLogs({
+                        type: AuditLogEvent.ChannelDelete,
+                        limit: 1
+                    }).catch(() => null)
+                ]);
+
                 if (!cachedGuildData?.antiCrashMode) {
                     return lg.error('Немає даних для антикрашу.');
                 }
-
-                // Отримуємо логи видалення каналу
-                const fetchedLogs = await channel.guild.fetchAuditLogs({
-                    type: AuditLogEvent.ChannelDelete,
-                    limit: 1
-                }).catch(() => null);
 
                 if (!fetchedLogs) {
                     lg.warn('Немає логів аудиту для цього видалення каналу.');
@@ -44,38 +44,25 @@ export default {
                     return;
                 }
 
-                // Отримуємо executor (користувача, який видалив канал)
                 const executor = logEntry.executor;
                 if (!executor) {
                     lg.warn('❌ Не вдалося отримати користувача з логів.');
                     return;
                 }
 
-                // Отримуємо учасника, який виконав дію
                 let member = channel.guild.members.cache.get(executor.id) || await channel.guild.members.fetch(executor.id).catch(() => null);
-
-                // lg.debug(`member:`, member)
                 if (!member) {
                     lg.warn('Не вдалося отримати учасника.');
                     return;
                 }
 
-                // Перевірка на дозволену роль
-                const memberRoles = member.roles.cache; // Отримуємо ролі користувача
-                const guildData = await Guild.findOne({ _id: channel.guild.id });
+                const memberRoles = member.roles.cache;
                 const whitelist_data = guildData?.antinuke_whitelist ?? [];
                 
-                // lg.info(whitelist_data)
-                // lg.info(`user_roles:`, memberRoles)
-                
                 const hasWhitelistedRole = memberRoles.some(role => whitelist_data.includes(role.id)) || member.id == channel.guild.ownerId;
-                lg.info('hasWhitelistedRole?', hasWhitelistedRole)
-
                 if (hasWhitelistedRole) {
                     lg.info('Користувач має дозволену роль, пропускаємо перевірку.');
-                    return; // Якщо має дозволену роль, пропускаємо виконання подальших дій
-                } else {
-                    lg.warn('Користувач не має дозволеної ролі.');
+                    return;
                 }
 
                 // Оновлюємо кеш видалень + лог
@@ -84,26 +71,23 @@ export default {
                     add_channel_delete_to_cache(channel.guild, executor.id)
                 ]);
 
-                // Перевіряємо скільки каналів він видалив
                 const deleteCount = await channel_delete_cache_check(executor.id);
-
-                // Покарання тільки якщо перевищено ліміт
                 if (deleteCount >= 3) {
                     if (!isTimedOut(member)) {
                         await freezeUser(channel.guild, executor.id);
                     }
                     await guild_admin_frozen_log(guildId, executor.id, deleteCount);
-
                     await delete_channel_delete_cache(executor.id);
                 }
 
             } catch (error) {
-                console.error('❌ Помилка при обробці видалення каналу:', error);
+                lg.error('❌ Помилка при обробці видалення каналу:', error);
             }
         });
     }
 };
 
+// Перевіряємо, чи користувач у тайм-ауті
 const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.now();
 
 // Функція для блокування порушника (timeout або ban замість кіка)
@@ -111,7 +95,6 @@ export async function freezeUser(guild, userId) {
     try {
         const member = guild.members.cache.get(userId) || await guild.members.fetch(userId).catch(() => null);
         if (!member) {
-            
             lg.warn('Користувач не знайдений або вже покинув сервер.');
             return;
         }
@@ -137,13 +120,11 @@ export async function freezeUser(guild, userId) {
             if (error.code === 50013) {
                 console.log('❌ Бот не має достатніх прав для бана.');
             } else if (error.code === 10007) {
-                console.log('❌ Користувач уже покинув сервер.');
+                console.log('❌ Користувач вже покинув сервер.');
             } else if (error.code === 500) {
                 console.log('❌ Внутрішня помилка Discord API. Спробуйте пізніше.');
             }
         }
-            
-
     } catch (error) {
         lg.error('❌ Помилка при замороженні користувача:', error);
     }

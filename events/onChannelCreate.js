@@ -29,14 +29,17 @@ export default {
 
                 lg.debug(cachedGuildData)
                 if (!cachedGuildData?.antiCrashMode) {
-                     return lg.error('Немає даних для антикрашу.');
-                 }
+                    return lg.error('Немає даних для антикрашу.');
+                }
 
                 // Отримуємо логи видалення каналу
-                const fetchedLogs = await channel.guild.fetchAuditLogs({
-                    type: AuditLogEvent.ChannelCreate,
-                    limit: 1
-                }).catch(() => null);
+                const [guildData, fetchedLogs] = await Promise.all([
+                    Guild.findOne({ _id: channel.guild.id }),
+                    channel.guild.fetchAuditLogs({
+                      type: AuditLogEvent.ChannelCreate,
+                      limit: 1
+                    }).catch(() => null)
+                  ]);
 
                 if (!fetchedLogs) {
                     lg.warn('Немає логів аудиту для цього видалення каналу.');
@@ -67,7 +70,7 @@ export default {
 
                 // Перевірка на дозволену роль
                 const memberRoles = member.roles.cache; // Отримуємо ролі користувача
-                const guildData = await Guild.findOne({ _id: channel.guild.id });
+
                 const whitelist_data = guildData?.antinuke_whitelist ?? [];
                 
                 // lg.info(whitelist_data)
