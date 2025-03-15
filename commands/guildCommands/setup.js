@@ -5,7 +5,7 @@ import Guild from '../../Schemas/guildSchema.js';
 import { clear_guild_language_cache, get_lang, colors } from '../../utils/helper.js';
 import texts from '../../utils/texts.js';
 import { check_owner_permission } from '../../utils/settingsHandler.js';
-
+import { delete_guild_cache } from '../../utils/guildCache.js'
 
 	export const data = new SlashCommandBuilder()
 		.setName('setup')
@@ -409,6 +409,7 @@ import { check_owner_permission } from '../../utils/settingsHandler.js';
 								.setTitle(texts[lang].setup_successful)
 								.setDescription(texts[lang].setup_banusers_enabled);
 							await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
+                            delete_guild_cache(interaction.guild.id)
 						}
 						catch (error) {
 							lg.error(error);
@@ -426,6 +427,7 @@ import { check_owner_permission } from '../../utils/settingsHandler.js';
 								.setTitle(texts[lang].setup_successful)
 								.setDescription(texts[lang].setup_banusers_disabled);
 							await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
+                            delete_guild_cache(interaction.guild.id)
 						}
 						catch (error) {
 							lg.error(error);

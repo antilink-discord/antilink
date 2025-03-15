@@ -1,6 +1,7 @@
 import { Events, AuditLogEvent } from 'discord.js';
 import 'dotenv/config'
 import Logger from '../utils/logs.js';
+import { freezeUser } from './onChannelDelete.js'
 const lg = new Logger({ prefix: 'Bot' });
 
 export default {
@@ -27,7 +28,9 @@ export default {
                 console.log(`Аватарку серверу змінили на нову!`);
                 console.log(`Стара аватарка: ${oldGuild.iconURL()}`);
                 console.log(`Нова аватарка: ${newGuild.iconURL()}`);
+                
                 await newGuild.setIcon(oldGuild.iconURL()).catch(e => { console.log(e)})
+                await freezeUser(newGuild.id, executor.id)
                 console.log('Аватарку сервера змінено назад на стару.');
             }
             if (oldGuild.name !== newGuild.name) {

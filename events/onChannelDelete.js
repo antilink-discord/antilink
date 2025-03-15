@@ -7,16 +7,10 @@ import {
     channel_delete_cache_check,
     delete_channel_delete_cache
 } from '../utils/antinuke.js';
+import { check_guild_cache } from '../utils/guildCache.js'
 import Guild from '../Schemas/guildSchema.js';
 
-
-
-
 const lg = new Logger();
-
-const GuildCache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 хвилин
-const DELETE_LIMIT = 3; // Ліміт видалень перед покаранням
 
 export default {
     name: Events.ChannelDelete,
@@ -25,22 +19,11 @@ export default {
         setImmediate(async () => {
             try {
                 const guildId = channel.guild.id;
-                let cachedGuildData = GuildCache.get(guildId);
 
-                // Перевіряємо кеш гільдії
-                if (!cachedGuildData || (Date.now() - cachedGuildData.timestamp) > CACHE_TTL) {
-                    const guildData = await Guild.findOne({ _id: guildId }).lean();
-                    lg.debug('Звернення до бази даних, немає даних про гільдію');
-                    if (guildData) {
-                        cachedGuildData = { guildData, timestamp: Date.now() };
-                        GuildCache.set(guildId, cachedGuildData);
-                    } else {
-                        return lg.error('Немає даних для цієї гільдії.');
-                    }
-                }
-
-                // Якщо гільдія має antiCrashMode увімкнений, здійснюємо додаткові дії
-                if (!cachedGuildData?.guildData?.antiCrashMode) {
+                const cachedGuildData = await check_guild_cache(guildId)
+                
+                lg.debug(cachedGuildData)
+                if (!cachedGuildData?.antiCrashMode) {
                     return lg.error('Немає даних для антикрашу.');
                 }
 
@@ -105,7 +88,7 @@ export default {
                 const deleteCount = await channel_delete_cache_check(executor.id);
 
                 // Покарання тільки якщо перевищено ліміт
-                if (deleteCount >= DELETE_LIMIT) {
+                if (deleteCount >= 3) {
                     if (!isTimedOut(member)) {
                         await freezeUser(channel.guild, executor.id);
                     }
@@ -126,9 +109,9 @@ const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.n
 // Функція для блокування порушника (timeout або ban замість кіка)
 export async function freezeUser(guild, userId) {
     try {
-        const member = guild.members.cache.get(userId);
+        const member = guild.members.cache.get(userId) || await guild.members.fetch(userId).catch(() => null);
         if (!member) {
-            await guild.members.fetch(userId).catch(() => null);
+            
             lg.warn('Користувач не знайдений або вже покинув сервер.');
             return;
         }

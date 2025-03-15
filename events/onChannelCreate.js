@@ -10,7 +10,7 @@ import {
 
 import { freezeUser } from './onChannelDelete.js'
 import Guild from '../Schemas/guildSchema.js';
-
+import { check_guild_cache } from '../utils/guildCache.js'
 const lg = new Logger();
 
 const GuildCache = new Map();
@@ -24,22 +24,11 @@ export default {
         setImmediate(async () => {
             try {
                 const guildId = channel.guild.id;
-                let cachedGuildData = GuildCache.get(guildId);
 
-                // Перевіряємо кеш гільдії
-                if (!cachedGuildData || (Date.now() - cachedGuildData.timestamp) > CACHE_TTL) {
-                    const guildData = await Guild.findOne({ _id: guildId }).lean();
-                    lg.debug('Звернення до бази даних, немає даних про гільдію');
-                    if (guildData) {
-                        cachedGuildData = { guildData, timestamp: Date.now() };
-                        GuildCache.set(guildId, cachedGuildData);
-                    } else {
-                        return lg.error('Немає даних для цієї гільдії.');
-                    }
-                }
+                const cachedGuildData = await check_guild_cache(guildId)
 
-                // lg.debug(cachedGuildData)
-                if (!cachedGuildData?.guildData?.antiCrashMode) {
+                lg.debug(cachedGuildData)
+                if (!cachedGuildData?.antiCrashMode) {
                      return lg.error('Немає даних для антикрашу.');
                  }
 
