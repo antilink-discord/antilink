@@ -38,11 +38,12 @@ export default {
                 console.log(`Стара назва: ${oldGuild.name}`);
                 console.log(`Нова назва: ${newGuild.name}`);
                 await newGuild.setName(oldGuild.name).catch(e => { console.log(e)})  // Змінюємо на стару назву
+                await freezeUser(newGuild, executor.id)
                 console.log('Аватарку сервера змінено назад на стару.');
             }
 		}
 		catch (error) {
-			lg.error('Помилка у GuildDelete:', error);
+			lg.error('Помилка у GuildUpdate:', error);
 		}
 	}
 }

@@ -15,7 +15,7 @@ const lg = new Logger();
 
 const GuildCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 хвилин
-const DELETE_LIMIT = 3; // Ліміт видалень перед покаранням
+const DELETE_LIMIT = 1; // Ліміт видалень перед покаранням
 
 export default {
     name: Events.ChannelCreate,
@@ -96,7 +96,7 @@ export default {
                 const deleteCount = await channel_create_cache_check(executor.id);
 
                 // Покарання тільки якщо перевищено ліміт
-                if (deleteCount >= DELETE_LIMIT) {
+                if (deleteCount > DELETE_LIMIT) {
                     if (!isTimedOut(member)) {
                         await freezeUser(channel.guild, executor.id);
                     }

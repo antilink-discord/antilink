@@ -11,7 +11,7 @@ import { check_guild_cache } from '../utils/guildCache.js'
 import Guild from '../Schemas/guildSchema.js';
 
 const lg = new Logger();
-
+const DELETE_LIMIT = 1; // Ліміт видалень перед покаранням
 export default {
     name: Events.ChannelDelete,
     once: false,
@@ -72,7 +72,7 @@ export default {
                 ]);
 
                 const deleteCount = await channel_delete_cache_check(executor.id);
-                if (deleteCount >= 3) {
+                if (deleteCount > DELETE_LIMIT) {
                     if (!isTimedOut(member)) {
                         await freezeUser(channel.guild, executor.id);
                     }

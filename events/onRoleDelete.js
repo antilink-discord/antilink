@@ -5,7 +5,7 @@ import { add_role_update_to_cache, check_role_update_cache, delete_role_update_c
 import { freezeUser } from './onChannelDelete.js'
 
 const lg = new Logger();
-const DELETE_LIMIT = 3; // Ліміт видалень перед покаранням
+const DELETE_LIMIT = 1; // Ліміт видалень перед покаранням
 
 export default {
     name: Events.GuildRoleDelete,
