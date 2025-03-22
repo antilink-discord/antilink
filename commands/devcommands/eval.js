@@ -20,7 +20,9 @@ export async function execute(interaction) {
     const code = interaction.options.getString('code');
 
     try {
-        let result = await (async () => eval(code))(); // Додаємо обгортку для підтримки `await`
+        // Додаємо `db` до контексту eval, якщо MongoDB підключено
+        const db = interaction.client.db || null;
+        const result = await (async () => eval(code))();
         const output = util.inspect(result, { depth: 2 });
 
         await interaction.reply(`📥 **Вхідний код:**\n\`\`\`js\n${code}\n\`\`\`\n📤 **Результат:**\n\`\`\`js\n${output}\n\`\`\``);
