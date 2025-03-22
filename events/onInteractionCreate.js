@@ -10,8 +10,8 @@ export default {
         if (interaction.isAutocomplete()) {
             try {
                 const command = interaction.client.commands.get(interaction.commandName)
-                    || interaction.client.guildCommands.get(interaction.commandName)
-                    || interaction.client.devCommands.get(interaction.commandName); // ✅ Додано devCommands
+                    || interaction.client.devCommands.get(interaction.commandName);
+
 
                 if (!command) return;
 
@@ -27,8 +27,9 @@ export default {
 
             // 🔥 Оновлена логіка пошуку команди
             const command = interaction.client.commands.get(interaction.commandName)
-                || interaction.client.guildCommands.get(interaction.commandName)
-                || interaction.client.devCommands.get(interaction.commandName); // ✅ Додано devCommands
+                || interaction.client.devCommands.get(interaction.commandName);
+
+
 
             if (!command) {
                 lg.error(`No command matching ${interaction.commandName} was found.`);
