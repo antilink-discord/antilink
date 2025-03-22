@@ -1,98 +1,78 @@
-import { Events, MessageFlags, EmbedBuilder, Embed, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionOverwriteManager, PermissionOverwrites, PermissionFlagsBits, ModalBuilder, TextInputBuilder, TextInputStyle, flatten, Collection } from 'discord.js';
-import 'dotenv/config'
-
-// import { colors } from '../utils/helper.js';
-// import { settingsHandler } from '../utils/settingsHandler.js';
+import { Events, MessageFlags, Collection } from 'discord.js';
+import 'dotenv/config';
 import Logger from '../utils/logs.js';
+
 const lg = new Logger({ prefix: 'Bot' });
 
 export default {
-	name: Events.InteractionCreate,
-	async execute(interaction) {
-		if (interaction.isAutocomplete()) {
-			try {
-				const command = interaction.client.commands.get(interaction.commandName);
-				await command.autocomplete(interaction);
-				return;
-			}
-			catch (error) {
-				lg.log(error);
-			}
-		}
-		// const { emoji_pack } = await settingsHandler(interaction);
-		// if (interaction.isModalSubmit()) {
-		// 	try {
-		// 		if (interaction.customId === 'bug_report') {
-		// 			const bug_text = await interaction.fields.getTextInputValue('bug_input');
-		// 			const reproduce_text = await interaction.fields.getTextInputValue('bug_how_to_reproduce');
-		// 			await send_webhook(interaction, bug_text, reproduce_text);
-		// 		}
-		// 	}
-		// 	catch (error) {
-		// 		lg.log(error);
-		// 	}
+    name: Events.InteractionCreate,
+    async execute(interaction) {
+        if (interaction.isAutocomplete()) {
+            try {
+                const command = interaction.client.commands.get(interaction.commandName)
+                    || interaction.client.guildCommands.get(interaction.commandName);
 
-		// }
-		if (interaction.isChatInputCommand()) {
-			if (!interaction.inGuild() || !interaction.isCommand()) return;
+                if (!command) return;
 
-			const command = interaction.client.commands.get(interaction.commandName);
-			if (!command) {
-				lg.error(`No command matching ${interaction.commandName} was found.`);
-				return;
-			}
+                await command.autocomplete(interaction);
+                return;
+            } catch (error) {
+                lg.error(error);
+            }
+        }
 
-			if (!interaction.client.cooldowns) {
-				interaction.client.cooldowns = new Collection();
-			}
-			const cooldowns = interaction.client.cooldowns;
+        if (interaction.isChatInputCommand()) {
+            if (!interaction.inGuild()) return;
 
+            // 🔥 Оновлена логіка пошуку команди
+            const command = interaction.client.commands.get(interaction.commandName)
+                || interaction.client.guildCommands.get(interaction.commandName);
 
-			if (!command) {
-				lg.error(`No command matching ${interaction.commandName} was found.`);
-				return;
-			}
+            if (!command) {
+                lg.error(`No command matching ${interaction.commandName} was found.`);
+                return;
+            }
 
+            // 📌 Переконуємось, що система cooldown існує
+            if (!interaction.client.cooldowns) {
+                interaction.client.cooldowns = new Collection();
+            }
+            const cooldowns = interaction.client.cooldowns;
 
-			if (!cooldowns.has(command.name)) {
-				cooldowns.set(command.name, new Collection());
-			}
+            if (!cooldowns.has(command.data.name)) {
+                cooldowns.set(command.data.name, new Collection());
+            }
 
-			const now = Date.now();
-			const timestamps = cooldowns.get(command.name);
-			const defaultCooldownDuration = 3;
-			const cooldownAmount = (command.cooldown ?? defaultCooldownDuration) * 1000;
+            const now = Date.now();
+            const timestamps = cooldowns.get(command.data.name);
+            const defaultCooldownDuration = 3;
+            const cooldownAmount = (command.cooldown ?? defaultCooldownDuration) * 1000;
 
-			if (timestamps.has(interaction.user.id)) {
-				const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
-				if (now < expirationTime) {
-					const timeLeft = (expirationTime - now) / 1000;
-					await interaction.reply({
-						content: `Зачекайте ${timeLeft.toFixed(1)} секунд перед повторним використанням цієї команди.`,
-						ephemeral: true,
-					});
-					return;
-				}
-			}
+            if (timestamps.has(interaction.user.id)) {
+                const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
+                if (now < expirationTime) {
+                    const timeLeft = (expirationTime - now) / 1000;
+                    await interaction.reply({
+                        content: `Зачекайте ${timeLeft.toFixed(1)} секунд перед повторним використанням цієї команди.`,
+                        ephemeral: true,
+                    });
+                    return;
+                }
+            }
 
+            timestamps.set(interaction.user.id, now);
+            setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
 
-			timestamps.set(interaction.user.id, now);
-			setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
-
-			try {
-				await command.execute(interaction);
-
-
-			}
-			catch (error) {
-				lg.error(error);
-				if (interaction.replied || interaction.deferred) {
-					await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
-				}
-				else {
-					await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
-				}
-			}
-		}
-	},
+            try {
+                await command.execute(interaction);
+            } catch (error) {
+                lg.error(error);
+                if (interaction.replied || interaction.deferred) {
+                    await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+                } else {
+                    await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+                }
+            }
+        }
+    },
 };
