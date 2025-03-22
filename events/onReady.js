@@ -82,6 +82,7 @@ export default {
             lg.info(`Реєстрація глобальних команд: ${globalCommands.map(c => c.name).join(', ')}`);
             await rest.put(Routes.applicationCommands(clientId), { body: globalCommands });
             lg.success('Глобальні команди успішно зареєстровані!');
+            lg.info('Завантажені глобальні команди:', [...client.commands.keys()]);
         } catch (error) {
             lg.error('Помилка реєстрації глобальних команд:', error);
         }
@@ -90,6 +91,7 @@ export default {
             lg.info(`Реєстрація dev-команд для ${guildId}: ${devCommands.map(c => c.name).join(', ')}`);
             await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: devCommands });
             lg.success(`Dev-команди для ${guildId} успішно зареєстровані!`);
+            lg.info('Завантажені dev-команди:', [...client.devCommands.keys()]);
         } catch (error) {
             lg.error(`Помилка реєстрації dev-команд для ${guildId}:`, error);
         }

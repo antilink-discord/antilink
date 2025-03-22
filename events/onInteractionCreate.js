@@ -10,7 +10,8 @@ export default {
         if (interaction.isAutocomplete()) {
             try {
                 const command = interaction.client.commands.get(interaction.commandName)
-                    || interaction.client.guildCommands.get(interaction.commandName);
+                    || interaction.client.guildCommands.get(interaction.commandName)
+                    || interaction.client.devCommands.get(interaction.commandName); // ✅ Додано devCommands
 
                 if (!command) return;
 
@@ -26,7 +27,8 @@ export default {
 
             // 🔥 Оновлена логіка пошуку команди
             const command = interaction.client.commands.get(interaction.commandName)
-                || interaction.client.guildCommands.get(interaction.commandName);
+                || interaction.client.guildCommands.get(interaction.commandName)
+                || interaction.client.devCommands.get(interaction.commandName); // ✅ Додано devCommands
 
             if (!command) {
                 lg.error(`No command matching ${interaction.commandName} was found.`);
@@ -51,9 +53,8 @@ export default {
             if (timestamps.has(interaction.user.id)) {
                 const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
                 if (now < expirationTime) {
-                    const timeLeft = (expirationTime - now) / 1000;
                     await interaction.reply({
-                        content: `Зачекайте ${timeLeft.toFixed(1)} секунд перед повторним використанням цієї команди.`,
+                        content: `Зачекайте ${(expirationTime - now) / 1000} секунд перед повторним використанням цієї команди.`,
                         ephemeral: true,
                     });
                     return;
