@@ -58,5 +58,6 @@ export async function clear_guild_language_cache(client, guildId) {
 
 export const colors = {
     SUCCESSFUL_COLOR: '#86fa50',
+    WARNING_COLOR: '#dbfa50',
     ERROR_COLOR: '#fa7850',
 };

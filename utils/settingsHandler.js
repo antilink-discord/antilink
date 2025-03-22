@@ -36,7 +36,8 @@ export async function get_emojis_for_message(support_server) {
 
 
 export async function settingsHandler(interaction) {
-    const lang = await get_lang(interaction.client, interaction.guild.id);
+    try{
+        const lang = await get_lang(interaction.client, interaction.guild.id);
     lg.debug(lang)
     const support_server = await interaction.client.guilds.cache.get(process.env.SUPPORT_SERVER_ID);
     if (!support_server) {
@@ -53,13 +54,20 @@ export async function settingsHandler(interaction) {
     let userblocking;
     if(guildData.blocking_enabled === true){
         userblocking = texts[lang].settings_enabled;
-    } else if(guildData.blocking_enabled === false) {
+    } else {
         userblocking = texts[lang].settings_disabled;
+    }
+
+    let antinuke_enabled;
+    if(guildData.antiCrashMode === true){
+        antinuke_enabled = texts[lang].settings_enabled;
+    } else {
+        antinuke_enabled = texts[lang].settings_disabled;
     }
 
     let webhook_name, webhook_channel;
     if (guildData.logchannel) {
-        const webhook = await get_webhook(guildData, interaction); // Залиште цю функцію у вашому основному файлі
+        const webhook = await get_webhook(guildData, interaction); 
         if (webhook) {
             webhook_name = webhook.name;
             webhook_channel = webhook.channel;
@@ -73,15 +81,20 @@ export async function settingsHandler(interaction) {
         webhook_channel,
         userblocking,
         emoji_pack,
-        role_names: await format_whitelist(interaction), // Виклик функції форматування ролей
+        antinuke_enabled,
+        role_names: await format_whitelist(interaction), 
     };
+    }catch(error) {
+        lg.error('settingsHandler error: ', error)
+    }
+    
 }
 
 export async function format_whitelist(interaction) {
     try {
         const GuildData = await Guild.findOne({ _id: interaction.guild.id });
         if (!GuildData || !GuildData.whitelist || GuildData.whitelist.length === 0) {
-            return []; // Повертаємо порожній масив, якщо немає ролей
+            return []; 
         }
 
         const rolesId = GuildData.whitelist;
@@ -91,16 +104,16 @@ export async function format_whitelist(interaction) {
         rolesId.forEach(roleId => {
             const role = interaction.guild.roles.cache.get(roleId);
             if (role) {
-                role_mentions.push(role.toString()); // Згадка про роль
+                role_mentions.push(role.toString()); 
             } else {
 
             }
         });
 
-        return role_mentions; // Повертаємо масив згадок про ролі
+        return role_mentions; 
     } catch (error) {
         lg.error('Помилка у форматуванні білого списку:', error);
-        return []; // Повертаємо порожній масив у випадку помилки
+        return []; 
     }
 }
 

@@ -4,8 +4,7 @@ import { guild_channel_delete_log, guild_admin_frozen_log } from '../utils/guild
 import Logger from '../utils/logs.js';
 import { 
     add_channel_delete_to_cache, 
-    channel_delete_cache_check,
-    delete_channel_delete_cache
+    channel_delete_cache_check
 } from '../utils/antinuke.js';
 import { check_guild_cache } from '../utils/guildCache.js'
 import Guild from '../Schemas/guildSchema.js';
@@ -68,16 +67,16 @@ export default {
                 // Оновлюємо кеш видалень + лог
                 await Promise.all([ 
                     guild_channel_delete_log(guildId, executor.id, channel.name),
-                    add_channel_delete_to_cache(channel.guild, executor.id)
+                    add_channel_delete_to_cache(guildId, executor.id)
                 ]);
 
-                const deleteCount = await channel_delete_cache_check(executor.id);
+                const deleteCount = await channel_delete_cache_check(guildId, executor.id);
+                lg.debug(deleteCount)
                 if (deleteCount > DELETE_LIMIT) {
                     if (!isTimedOut(member)) {
                         await freezeUser(channel.guild, executor.id);
                     }
                     await guild_admin_frozen_log(guildId, executor.id, deleteCount);
-                    await delete_channel_delete_cache(executor.id);
                 }
 
             } catch (error) {

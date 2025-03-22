@@ -36,7 +36,7 @@ import { delete_guild_cache } from '../../utils/guildCache.js'
 		)
         .addSubcommand(subcommand =>
 			subcommand
-				.setName('antinuke_whitelist')
+				.setName('antinuke_whitelist_add')
 				.setDescription('Додає вказану роль в білий список системи antinuke')
 				.addRoleOption(option =>
 					option
@@ -99,6 +99,19 @@ import { delete_guild_cache } from '../../utils/guildCache.js'
 			subcommand
 				.setName('whitelist_remove')
 				.setDescription('Видаляє вказану роль з білого списку')
+				.addRoleOption(option =>
+					option
+						.setName('role')
+						.setDescription('Вибрана роль буде видалена з білого списку')
+						.setRequired(true),
+
+				),
+
+		)
+        .addSubcommand(subcommand =>
+			subcommand
+				.setName('antinuke_whitelist_remove')
+				.setDescription('Видаляє вказану роль з білого списку системи antinuke')
 				.addRoleOption(option =>
 					option
 						.setName('role')
@@ -253,7 +266,7 @@ import { delete_guild_cache } from '../../utils/guildCache.js'
 			}
 		}
 
-        if (interaction.options.getSubcommand() === 'antinuke_whitelist') {
+        if (interaction.options.getSubcommand() === 'antinuke_whitelist_add') {
             const lang = await get_lang(interaction.client, interaction.guild.id);
 			try {
 				const role = interaction.options.getRole('role');
@@ -267,12 +280,14 @@ import { delete_guild_cache } from '../../utils/guildCache.js'
 
 					guildData.antinuke_whitelist.push(role.id);
 					await guildData.save();
+
 					const SuccessfullEmbed = new EmbedBuilder()
 						.setColor(colors.SUCCESSFUL_COLOR)
 						.setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 1024 }))
 						.setTitle(texts[lang].setup_successful)
 						.setDescription('Роль успішно додана');
 					await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
+                    delete_guild_cache(interaction.guild.id)
 				}
 				else {
 					await interaction.reply({ content: texts[lang].setup_whitelist_already_is, flags: MessageFlags.Ephemeral });
@@ -463,6 +478,37 @@ import { delete_guild_cache } from '../../utils/guildCache.js'
                         await Guild.updateOne(
                             { _id: interaction.guild.id },
                             { $pull: { whitelist: roleId } },
+                        );
+                        await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
+                    }
+                } catch (error) {
+                    console.error(error); // Логуємо помилку для відладки
+                    await interaction.reply(texts[lang].main_error_message);
+                }
+            }
+        }
+
+        if (interaction.options.getSubcommand() === 'antinuke_whitelist_remove') {
+            const lang = await get_lang(interaction.client, interaction.guild.id);
+            const isOwner = await check_owner_permission(interaction);
+            if (isOwner === true) {
+                try {
+                    const roleId = interaction.options.getRole('role').id;
+                    const role = await Guild.findOne({ _id: interaction.guild.id, antinuke_whitelist: { $in: [roleId] } });
+                    
+                    const SuccessfullEmbed = new EmbedBuilder()
+                        .setColor(colors.SUCCESSFUL_COLOR)
+                        .setThumbnail(interaction.guild.iconURL({ dynamic: true, size: 1024 }))
+                        .setTitle(texts[lang].setup_successful)
+                        .setDescription(texts[lang].setup_role_removed.replace('${role}', roleId))
+                    if (!role) {
+                        // Роль не знайдена, відправляємо повідомлення
+                        await interaction.reply({ content: texts[lang].setup_role_not_found, flags: MessageFlags.Ephemeral });
+                    } else {
+                        // Роль знайдена, видаляємо її
+                        await Guild.updateOne(
+                            { _id: interaction.guild.id },
+                            { $pull: { antinuke_whitelist: roleId } },
                         );
                         await interaction.reply({ embeds: [SuccessfullEmbed], flags: MessageFlags.Ephemeral });
                     }

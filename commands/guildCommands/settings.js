@@ -16,9 +16,10 @@ const lg = new Logger({ prefix: 'Bot' });
 		try {
             const lang = await get_lang(interaction.client, interaction.guild.id);
 			const guildData = await Guild.findOne({ _id: interaction.guild.id });
-
+            await interaction.deferReply({ephemeral: true})
 			if (interaction.guild.ownerId === interaction.member.id) {
-				const { webhook_name, webhook_channel, userblocking, role_names, emoji_pack } = await settingsHandler(interaction);
+                
+				const { webhook_name, webhook_channel, userblocking, role_names, emoji_pack, antinuke_enabled } = await settingsHandler(interaction);
 
 				const ExampleEmbed = new EmbedBuilder()
 					.setColor(0x5e66ff)
@@ -28,13 +29,14 @@ const lg = new Logger({ prefix: 'Bot' });
 						{ name: `${emoji_pack.logs_channel_emoji}${texts[lang].settings_logchannel}`, value: `${webhook_name} | ${webhook_channel}` || `${texts[lang].settings_didnt_setup}`, inline: true },
 						{ name: `${emoji_pack.whitelist_emoji}${texts[lang].settings_whitelist}`, value: role_names.join(', ') || `${texts[lang].settings_didnt_setup}`, inline: true },
 						{ name: `${texts[lang].settings_blocking}`, value: userblocking, inline: false },
+                        { name: `${texts[lang].settings_antinuke}`, value: antinuke_enabled, inline: false },
 					)
 					.setFooter({ text: texts[lang].settings_footer });
 
-				await interaction.reply({ embeds: [ExampleEmbed], flags: MessageFlags.Ephemeral });
+				await interaction.editReply({ embeds: [ExampleEmbed], flags: MessageFlags.Ephemeral });
 			}
 			else {
-				await interaction.reply({ content: `${texts[lang].no_perms}`, flags: MessageFlags.Ephemeral });
+				await interaction.editReply({ content: `${texts[lang].no_perms}`, flags: MessageFlags.Ephemeral });
 
 				return;
 			}

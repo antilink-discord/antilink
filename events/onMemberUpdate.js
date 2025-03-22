@@ -11,7 +11,7 @@ export default {
             const guild = newMember.guild;
             const userId = newMember.id;
 
-            // Перезапитуємо учасника з API Discord для оновлення кешу
+  
             const updatedMember = await guild.members.fetch(userId);
             lg.info(`🔄 Оновлено кеш для користувача: ${updatedMember.user.tag}`);
 

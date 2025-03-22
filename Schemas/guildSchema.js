@@ -30,6 +30,10 @@ const guildSchema = new mongoose.Schema({
     antiCrashMode: {
         type: Boolean,
         default: false
+    },
+    blockOnJoin: {
+        type: Boolean,
+        default: false
     }
 
 }, { collection: 'collguilds' }); // Вказуємо колекцію вручну

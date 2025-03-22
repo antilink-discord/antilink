@@ -36,6 +36,7 @@ export default {
         settings_blocking: "Блокування запрошень та користувачів",
         settings_didnt_setup: "не призначено",
         settings_footer: "Напишіть /setup для зміни налаштувань",
+        settings_antinuke: "Система анти-краш",
 
         dm_title: "Блокування",
         dm_description: "Ви були заблоковані на гільдії **${guild_name}**.",
@@ -101,6 +102,7 @@ export default {
         settings_blocking: "Invite and user blocking",
         settings_didnt_setup: "not assigned",
         settings_footer: "Use /setup to change settings",
+        settings_antinuke: "Anti-nuke system",
 
         dm_title: "Blocking",
         dm_description: "You have been blocked on the guild **${guild_name}**.",

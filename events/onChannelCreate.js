@@ -1,11 +1,10 @@
 import { Events, AuditLogEvent } from 'discord.js';
 import 'dotenv/config';
-import { guild_channel_delete_log, guild_admin_frozen_log } from '../utils/guildLogs.js';
+import { guild_channel_create_log, guild_admin_frozen_log } from '../utils/guildLogs.js';
 import Logger from '../utils/logs.js';
 import { 
     add_channel_create_to_cache, 
-    channel_create_cache_check,
-    delete_channel_create_cache
+    channel_create_cache_check
 } from '../utils/antinuke.js';
 
 import { freezeUser } from './onChannelDelete.js'
@@ -27,7 +26,7 @@ export default {
 
                 const cachedGuildData = await check_guild_cache(guildId)
 
-                lg.debug(cachedGuildData)
+                // lg.debug(cachedGuildData)
                 if (!cachedGuildData?.antiCrashMode) {
                     return lg.error('Немає даних для антикрашу.');
                 }
@@ -88,13 +87,13 @@ export default {
 
                 // Оновлюємо кеш видалень + лог
                 await Promise.all([ 
-                    guild_channel_delete_log(guildId, executor.id, channel.name),
-                    add_channel_create_to_cache(channel.guild, executor.id)
+                    guild_channel_create_log(guildId, executor.id, channel.name),
+                    add_channel_create_to_cache(guildId, executor.id)
                 ]);
 
                 // Перевіряємо скільки каналів він видалив
-                const deleteCount = await channel_create_cache_check(executor.id);
-
+                const deleteCount = await channel_create_cache_check(guildId, executor.id);
+                lg.debug(deleteCount)
                 // Покарання тільки якщо перевищено ліміт
                 if (deleteCount > DELETE_LIMIT) {
                     if (!isTimedOut(member)) {
@@ -102,8 +101,6 @@ export default {
                     }
                     await guild_admin_frozen_log(guildId, executor.id, deleteCount);
 
-                    
-                    await delete_channel_create_cache(executor.id);
                 }
 
             } catch (error) {
