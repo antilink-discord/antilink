@@ -1,15 +1,14 @@
-import { Events, Collection, REST, Routes, PresenceUpdateStatus} from 'discord.js';
-import path from'path';
+import { Events, Collection, REST, Routes } from 'discord.js';
+import path from 'path';
 import fs from 'fs';
-import 'dotenv/config'
+import 'dotenv/config';
 import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { pathToFileURL } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { cacheGuildsLanguages } from '../utils/helper.js';
-import Logger from '../utils/logs.js'
+import Logger from '../utils/logs.js';
+
 const lg = new Logger({ prefix: 'Bot' });
 
-const languagesCache = new Map()
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -24,63 +23,75 @@ export default {
 
         client.guildLanguages = new Map();
         client.commands = new Collection();
+        client.devCommands = new Collection();
 
-        const foldersPath = path.join(__dirname, '..', 'commands');
-        await cacheGuildsLanguages(client, guilds)
+        const commandsPath = path.join(__dirname, '..', 'commands');
+        const folders = fs.readdirSync(commandsPath, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory())
+            .map(dirent => dirent.name);
 
-        client.user.setPresence({ activities: [{ name: '/help' }]});
+        await cacheGuildsLanguages(client, guilds);
 
-        async function loadCommands(folderPath) {
+        client.user.setPresence({ activities: [{ name: '/help' }] });
+
+        async function loadCommands(folderPath, collection) {
             const entries = fs.readdirSync(folderPath, { withFileTypes: true });
+
             for (const entry of entries) {
                 const fullPath = path.join(folderPath, entry.name);
-        
-                // Якщо це папка, запускаємо рекурсію
+
                 if (entry.isDirectory()) {
-                    await loadCommands(fullPath);
-                    
+                    await loadCommands(fullPath, collection);
                 } else if (entry.isFile() && entry.name.endsWith('.js')) {
-                    // Перетворюємо шлях до файлу на file:// URL
                     const fileURL = pathToFileURL(fullPath).href;
-        
-                    // Якщо це файл команди, підключаємо його
-                     await import(fileURL)  // Використовуємо file:// URL
+
+                    await import(fileURL)
                         .then(command => {
                             if ('data' in command && 'execute' in command) {
-                                client.commands.set(command.data.name, command);
-                                lg.success(`Команда ${command.data.name} завантажена з файлу ${fullPath}`);
+                                collection.set(command.data.name, command);
+                                lg.success(`Команда ${command.data.name} завантажена з ${fullPath}`);
                             } else {
-                                lg.error(`[WARNING] The command at ${fullPath} is missing a required "data" or "execute" property.`);
+                                lg.error(`Команда ${fullPath} не має "data" або "execute".`);
                             }
                         })
-                        .catch(error => lg.error(`[ERROR] Не вдалося завантажити команду з файлу ${fullPath}:`, error));
-
+                        .catch(error => lg.error(`Помилка завантаження команди ${fullPath}:`, error));
                 }
             }
         }
 
-        // Запускаємо рекурсивний обхід команд
-        await loadCommands(foldersPath);
+        // Завантаження команд
+        for (const folder of folders) {
+            const folderPath = path.join(commandsPath, folder);
+
+            if (folder === 'devcommands') {
+                await loadCommands(folderPath, client.devCommands);
+            } else {
+                await loadCommands(folderPath, client.commands);
+            }
+        }
 
         lg.success('Усі команди успішно завантажені!');
 
-        // Реєстрація команд на сервері
-        const commands = client.commands.map(command => command.data.toJSON());
+        // Реєстрація глобальних команд
+        const globalCommands = client.commands.map(command => command.data.toJSON());
+        const devCommands = client.devCommands.map(command => command.data.toJSON());
 
-
-        lg.info(`Команди, що реєструються: ${commands.map(command => command.name).join(', ')}`);
-        const rest = new REST({ version: '9' }).setToken(process.env.TOKEN);
+        const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
         try {
-            lg.info('Реєстрація команд...');
-            await rest.put(
-                Routes.applicationCommands(clientId), 
-                { body: commands }
-            );
-            lg.success('Локальні команди успішно зареєстровані!');
+            lg.info(`Реєстрація глобальних команд: ${globalCommands.map(c => c.name).join(', ')}`);
+            await rest.put(Routes.applicationCommands(clientId), { body: globalCommands });
+            lg.success('Глобальні команди успішно зареєстровані!');
         } catch (error) {
-            lg.error('Помилка при реєстрації команд:', error);
+            lg.error('Помилка реєстрації глобальних команд:', error);
         }
 
+        try {
+            lg.info(`Реєстрація dev-команд для ${guildId}: ${devCommands.map(c => c.name).join(', ')}`);
+            await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: devCommands });
+            lg.success(`Dev-команди для ${guildId} успішно зареєстровані!`);
+        } catch (error) {
+            lg.error(`Помилка реєстрації dev-команд для ${guildId}:`, error);
+        }
     },
 };
