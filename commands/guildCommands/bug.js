@@ -29,7 +29,7 @@ const lg = new Logger({ prefix: 'Bot' });
 
 			const bug_how_to_reproduce = new TextInputBuilder()
 				.setCustomId('bug_how_to_reproduce')
-				.setLabel(texts[lang].send_modal_bug_input_one)
+				.setLabel(texts[lang].send_modal_bug_input_two)
 				.setMinLength(10)
 				.setMaxLength(200)
 				.setStyle(TextInputStyle.Paragraph);
