@@ -9,7 +9,6 @@ railway.json
 server.js
 utils/getGuildChannels.js
 .npm/
-shardManager.js
 events/onChannelCreate.js
 events/onChannelDelete.js
 utils/anticrashCaching.js
