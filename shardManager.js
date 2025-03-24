@@ -14,7 +14,11 @@ manager.on('shardCreate', shard => {
     shard.on('error', err => lg.error(`Помилка шарда #${shard.id}:`, err));
   });
   
-  manager.spawn().catch(err => lg.error('Помилка запуску шардів:', err));
+  manager.spawn()
+    .then(() => {
+        lg.success('Усі шарди запущено!'); // Важливо для Railway!
+    })
+  .catch(err => lg.error('Помилка запуску шардів:', err));
 
 process.on('unhandledRejection', err => {
     lg.error('Необроблена помилка:', err);
