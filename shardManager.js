@@ -5,12 +5,18 @@ const lg = new Logger({ prefix: 'Bot' });
 
 const manager = new ShardingManager('./bot.js', {
   token: process.env.TOKEN,
-  totalShards: 'auto', // Discord.js сам вирахує оптимальну кількість
+  totalShards: 2,
   shardArgs: ['--ansi'], // Додаткові аргументи
 });
 
 manager.on('shardCreate', shard => {
-  lg.info(`Запущено шард #${shard.id}`);
-});
+    lg.info(`Запущено шард #${shard.id}`);
+    shard.on('error', err => lg.error(`Помилка шарда #${shard.id}:`, err));
+  });
+  
+  manager.spawn().catch(err => lg.error('Помилка запуску шардів:', err));
 
-manager.spawn();
+process.on('unhandledRejection', err => {
+    lg.error('Необроблена помилка:', err);
+    process.exit(1);
+});
