@@ -24,7 +24,7 @@ export async function ban_member(message, user_cache) {
 		await member.ban();
 
 		await guild_ban_log(message, user_id, channel_name);
-		await banLogs(message, user, guild, warnsCount);
+		await banLogs(user, guild, warnsCount);
 
 	}
 	catch (error) {
