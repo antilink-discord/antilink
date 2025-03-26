@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { SlashCommandBuilder } from "discord.js";
-import { shardManager } from '../../shardManager.js'; // Імпортуємо менеджер
+import manager from '../../shardManager.js'; // Імпортуємо default експорт
 
 export const data = new SlashCommandBuilder()
     .setName('shards')
@@ -12,15 +12,15 @@ export async function execute(interaction) {
     }
 
     try {
-        if (!shardManager) {
+        if (!manager) {
             return await interaction.reply('Менеджер шардів не ініціалізований.');
         }
 
         // Отримуємо інформацію про всі шарди
-        const shardInfo = await shardManager.fetchClientValues('guilds.cache.size');
+        const shardInfo = await manager.fetchClientValues('guilds.cache.size');
         
         const statusMessages = shardInfo.map((guildCount, shardId) => {
-            const shard = shardManager.shards.get(shardId);
+            const shard = manager.shards.get(shardId);
             const status = shard?.status || 'unknown';
             return `Шард ${shardId}: ${statusToText(status)} | Серверів: ${guildCount}`;
         });
