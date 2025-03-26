@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { SlashCommandBuilder } from "discord.js";
-import manager from '../../shardManager.js'; // Імпортуємо default експорт
+import { shardManager } from '../../shardManager.js'; // Тепер імпортуємо іменований експорт
 
 export const data = new SlashCommandBuilder()
     .setName('shards')
@@ -12,37 +12,24 @@ export async function execute(interaction) {
     }
 
     try {
-        if (!manager) {
+        if (!shardManager) {
             return await interaction.reply('Менеджер шардів не ініціалізований.');
         }
 
-        // Отримуємо інформацію про всі шарди
-        const shardInfo = await manager.fetchClientValues('guilds.cache.size');
+        const statusMessages = [];
         
-        const statusMessages = shardInfo.map((guildCount, shardId) => {
-            const shard = manager.shards.get(shardId);
-            const status = shard?.status || 'unknown';
-            return `Шард ${shardId}: ${statusToText(status)} | Серверів: ${guildCount}`;
-        });
+        for (const shard of shardManager.shards.values()) {
+            const status = shard.ready ? '🟢 Онлайн' : '🔴 Оффлайн';
+            const guilds = await shard.fetchClientValue('guilds.cache.size');
+            statusMessages.push(`Шард ${shard.id}: ${status} | Серверів: ${guilds}`);
+        }
 
         await interaction.reply({
             content: `**Статус шардів:**\n${statusMessages.join('\n')}`,
             ephemeral: true
         });
-
     } catch (error) {
         console.error('Помилка команди shards:', error);
         await interaction.reply('Сталася помилка при отриманні статусу шардів.');
     }
-}
-
-function statusToText(status) {
-    const statusMap = {
-        'ready': '🟢 Онлайн',
-        'disconnected': '🔴 Оффлайн',
-        'connecting': '🟡 Підключення',
-        'identifying': '🟣 Ідентифікація',
-        'resuming': '🔵 Відновлення'
-    };
-    return statusMap[status] || '❓ Невідомо';
 }

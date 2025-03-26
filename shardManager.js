@@ -3,59 +3,60 @@ import 'dotenv/config';
 import Logger from './utils/logs.js';
 const lg = new Logger({ prefix: 'ShardManager' });
 
-// Конфігурація з явним вказівкою кількості шардів
+// Вимкнути авто-перезапуск
 const manager = new ShardingManager('./bot.js', {
   token: process.env.TOKEN,
   totalShards: 2, // Фіксована кількість
-  respawn: false, // Вимкнути авто-перезапуск
+  respawn: false, // Вимкнути перезапуск
   shardArgs: ['--color'],
 });
 
-let isSpawning = false;
-const spawnedShards = new Set();
+// Відстежуємо запущені шарди
+const activeShards = new Set();
 
 manager.on('shardCreate', shard => {
-  if (spawnedShards.has(shard.id)) {
-    lg.warn(`[Shard #${shard.id}] Вже був запущений раніше!`);
+  if (activeShards.has(shard.id)) {
+    lg.warn(`[Shard #${shard.id}] Спроба повторного запуску`);
     return;
   }
 
-  spawnedShards.add(shard.id);
-  lg.info(`[Shard #${shard.id}] Початок ініціалізації`);
+  activeShards.add(shard.id);
+  lg.info(`[Shard #${shard.id}] Ініціалізація`);
 
   shard.on('ready', () => {
-    lg.success(`[Shard #${shard.id}] Успішно запущений`);
+    lg.success(`[Shard #${shard.id}] Готовий`);
+  });
+
+  shard.on('death', () => {
+    lg.error(`[Shard #${shard.id}] Завершив роботу`);
+    activeShards.delete(shard.id);
   });
 
   shard.on('disconnect', () => {
     lg.warn(`[Shard #${shard.id}] Відключений`);
   });
-
-  shard.on('death', () => {
-    lg.error(`[Shard #${shard.id}] Завершив роботу`);
-    spawnedShards.delete(shard.id);
-  });
 });
-
-// Запобігаємо подвійному запуску
-if (!isSpawning) {
-  isSpawning = true;
-  manager.spawn()
-    .then(shards => {
-      lg.success(`Успішно запущено ${shards.size} шардів. Очікування подій...`);
-    })
-    .catch(error => {
-      lg.error('Помилка запуску:', error);
-      process.exit(1);
-    });
-}
 
 // Обробка завершення роботи
-['SIGINT', 'SIGTERM'].forEach(signal => {
-  process.on(signal, () => {
-    lg.info(`Отримано ${signal}. Завершення роботи...`);
-    manager.destroy().finally(() => process.exit(0));
-  });
+process.on('SIGINT', () => {
+  lg.info('Отримано SIGINT. Завершення роботи...');
+  manager.destroy().finally(() => process.exit(0));
 });
 
-export default manager;
+process.on('SIGTERM', () => {
+  lg.info('Отримано SIGTERM. Завершення роботи...');
+  manager.destroy().finally(() => process.exit(0));
+});
+
+// Запуск шардів
+manager.spawn()
+  .then(shards => {
+    lg.success(`Успішно запущено ${shards.size} шардів`);
+  })
+  .catch(error => {
+    lg.error('Помилка запуску шардів:', error);
+    process.exit(1);
+  });
+
+// Експортуємо для використання в командах
+export const shardManager = manager;

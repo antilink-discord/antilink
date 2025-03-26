@@ -1,10 +1,10 @@
 {
   "name": "anilink",
   "version": "0.0.1",
-  "main": "shardManager.js",
+  "main": "bot.js",
   "type": "module",
   "scripts": {
-    "start": "node shardManager.js",
+    "start": "node bot.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
