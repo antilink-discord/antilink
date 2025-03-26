@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { SlashCommandBuilder } from "discord.js";
-import { shardManager } from '../shardManager.js'; // Імпортуємо менеджер
+import { shardManager } from '../../shardManager.js'; // Імпортуємо менеджер
 
 export const data = new SlashCommandBuilder()
     .setName('shards')
