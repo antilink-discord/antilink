@@ -1,15 +1,15 @@
 {
   "name": "anilink",
   "version": "0.0.1",
-  "main": "bot.js",
+  "main": "shardManager.js",
   "type": "module",
   "scripts": {
-    "start": "node bot.js",
+    "start": "node shardManager.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "RastGame",
+  "author": "Maksym Tyvoniuk",
   "license": "ISC",
   "description": "",
   "dependencies": {
