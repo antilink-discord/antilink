@@ -3,62 +3,59 @@ import 'dotenv/config';
 import Logger from './utils/logs.js';
 const lg = new Logger({ prefix: 'ShardManager' });
 
-// Конфігурація з вимкненим авто-перезапуском
+// Конфігурація з явним вказівкою кількості шардів
 const manager = new ShardingManager('./bot.js', {
   token: process.env.TOKEN,
-  totalShards: 2, // Фіксована кількість для тестування
-  respawn: false, // Вимкнути автоматичний перезапуск
+  totalShards: 2, // Фіксована кількість
+  respawn: false, // Вимкнути авто-перезапуск
   shardArgs: ['--color'],
 });
 
-let activeShards = new Set();
+let isSpawning = false;
+const spawnedShards = new Set();
 
 manager.on('shardCreate', shard => {
-  if (activeShards.has(shard.id)) {
-    lg.warn(`[Shard #${shard.id}] Спроба повторного запуску`);
+  if (spawnedShards.has(shard.id)) {
+    lg.warn(`[Shard #${shard.id}] Вже був запущений раніше!`);
     return;
   }
 
-  activeShards.add(shard.id);
-  lg.info(`[Shard #${shard.id}] Перший запуск`);
+  spawnedShards.add(shard.id);
+  lg.info(`[Shard #${shard.id}] Початок ініціалізації`);
 
   shard.on('ready', () => {
-    lg.success(`[Shard #${shard.id}] Готовий`);
-  });
-
-  shard.on('death', () => {
-    lg.warn(`[Shard #${shard.id}] Завершив роботу`);
-    activeShards.delete(shard.id);
+    lg.success(`[Shard #${shard.id}] Успішно запущений`);
   });
 
   shard.on('disconnect', () => {
     lg.warn(`[Shard #${shard.id}] Відключений`);
   });
 
-  shard.on('error', error => {
-    lg.error(`[Shard #${shard.id}] Помилка:`, error);
+  shard.on('death', () => {
+    lg.error(`[Shard #${shard.id}] Завершив роботу`);
+    spawnedShards.delete(shard.id);
   });
 });
 
-// Обробка сигналів завершення
-const handleExit = async () => {
-  lg.info('Отримано сигнал завершення. Зупинка шардів...');
-  await manager.destroy();
-  process.exit(0);
-};
+// Запобігаємо подвійному запуску
+if (!isSpawning) {
+  isSpawning = true;
+  manager.spawn()
+    .then(shards => {
+      lg.success(`Успішно запущено ${shards.size} шардів. Очікування подій...`);
+    })
+    .catch(error => {
+      lg.error('Помилка запуску:', error);
+      process.exit(1);
+    });
+}
 
-process.on('SIGINT', handleExit);
-process.on('SIGTERM', handleExit);
-
-// Запуск шардів
-manager.spawn()
-  .then(shards => {
-    lg.success(`Успішно запущено ${shards.size} шардів`);
-  })
-  .catch(error => {
-    lg.error('Помилка запуску шардів:', error);
-    process.exit(1);
+// Обробка завершення роботи
+['SIGINT', 'SIGTERM'].forEach(signal => {
+  process.on(signal, () => {
+    lg.info(`Отримано ${signal}. Завершення роботи...`);
+    manager.destroy().finally(() => process.exit(0));
   });
+});
 
-// Експорт для використання в командах
 export default manager;
