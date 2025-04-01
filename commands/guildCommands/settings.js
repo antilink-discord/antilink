@@ -1,5 +1,5 @@
-import { SlashCommandBuilder } from '@discordjs/builders';
-import { EmbedBuilder, MessageFlags } from 'discord.js';
+import { SlashCommandBuilder, ActionRowBuilder } from '@discordjs/builders';
+import { EmbedBuilder, MessageFlags, ButtonBuilder, ButtonStyle } from 'discord.js';
 import Guild from '../../Schemas/guildSchema.js';
 import { settingsHandler } from '../../utils/settingsHandler.js';
 import texts from '../../utils/texts.js';
@@ -20,6 +20,14 @@ const lg = new Logger({ prefix: 'Bot' });
 			if (interaction.guild.ownerId === interaction.member.id) {
 				const { webhook_name, webhook_channel, userblocking, role_names, emoji_pack } = await settingsHandler(interaction);
 
+                const linkButton = new ButtonBuilder()
+                    .setURL('https://antilink.pp.ua/')
+                    .setLabel(texts[lang].dashboard_button)
+                    .setStyle(ButtonStyle.Link);
+
+                    const row = new ActionRowBuilder()
+                    .addComponents(linkButton);
+
 				const ExampleEmbed = new EmbedBuilder()
 					.setColor(0x5e66ff)
 					.setTitle(`${emoji_pack.settings_emoji}${texts[lang].settings_title}`)
@@ -31,7 +39,7 @@ const lg = new Logger({ prefix: 'Bot' });
 					)
 					.setFooter({ text: texts[lang].settings_footer });
 
-				await interaction.reply({ embeds: [ExampleEmbed], flags: MessageFlags.Ephemeral });
+				await interaction.reply({ embeds: [ExampleEmbed], flags: MessageFlags.Ephemeral, components: [row] });
 			}
 			else {
 				await interaction.reply({ content: `${texts[lang].no_perms}`, flags: MessageFlags.Ephemeral });

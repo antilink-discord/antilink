@@ -25,7 +25,7 @@ const lg = new Logger({ prefix: 'Bot' });
 				.setDescription(texts[lang].help_description)
 				.addFields(
 					{ name: texts[lang].help_field_one, value: texts[lang].help_value_one, inline: true },
-					{ name: texts[lang].help_field_two, value: `[${texts[lang].help_value_two}](https://discord.gg/4gKnjwyWpK)` },
+					{ name: texts[lang].help_field_two, value: `[${texts[lang].help_value_two}](https://discord.gg/4gKnjwyWpK)\n[${texts[lang].help_value_three}](https://antilink.pp.ua)` },
 				)
 				.setFooter({ text: texts[lang].settings_footer });
 

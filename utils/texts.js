@@ -14,6 +14,8 @@ export default {
         warns_author: "Автор:",
         warns_reason: "Причина:",
 
+        dashboard_button: 'Панель',
+
         setup_successful: "Успішно!",
         setup_role_removed: "Роль <@&${role}> була успішно видалена з білого списку!",
         setup_role_not_found: "**❌Не вдалось знайти вказану Вами роль!**",
@@ -57,7 +59,7 @@ export default {
         help_value_one: "</ping:1335314538568089698> - показує статус та пінг бота\n</settings:1335314538568089695> - показує налаштування вашої гільдії\n</setup whitelist:1335314538568089696> - додання ролей в білий список на гільдії\n</setup whitelist_remove:1342824436092371011> - видаляє роль з білого списку\n</setup ban_users:1335314538568089696> - вмикає функцію блокування запрошень та коричтувачів в чорному списку\n</setup log_channel:1335314538568089696> - призначає Webhook для логів\n</warns:1335314538568089697> - переглянути список попереджень користувача",
         help_field_two: "Корисні посилання",
         help_value_two: "Сервер підтримки",
-
+        help_value_three: "Панель налаштування",
         send_modal_bug_title: "Відправлення багу",
         send_modal_bug_input_one: "Суть помилки",
         send_modal_bug_input_two: "Як відтворити баг?",
@@ -102,6 +104,8 @@ export default {
         settings_didnt_setup: "not assigned",
         settings_footer: "Use /setup to change settings",
 
+        dashboard_button: 'Dashboard',
+        
         dm_title: "Blocking",
         dm_description: "You have been blocked on the guild **${guild_name}**.",
         dm_reason: "blacklist",
@@ -122,7 +126,8 @@ export default {
         help_value_one: "</ping:1335314538568089698> - shows the bot's status and ping\n</settings:1335314538568089695> - displays your guild's settings\n</setup whitelist:1335314538568089696> - adds roles to the guild's whitelist\n </setup whitelist_remove:1342824436092371011> - remove role from whitelist\n</setup ban_users:1335314538568089696> - enables the feature to block invites and blacklist users\n</setup log_channel:1335314538568089696> - assigns a Webhook for logs\n</warns:1335314538568089697> - view a user's warning list",
         help_field_two: "Useful Links",
         help_value_two: "Support Server",
-
+        
+        help_value_three: "Bot dashboard site",
         send_modal_bug_title: "Bug report",
         send_modal_bug_input_one: "Describe the problem",
         send_modal_bug_input_two: "How to reproduce the bug?",
