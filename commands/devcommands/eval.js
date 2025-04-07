@@ -1,6 +1,7 @@
 import { SlashCommandBuilder } from 'discord.js';
 import util from 'util';
-
+import Guild from '../../Schemas/guildSchema.js';
+import User from '../../Schemas/userSchema.js'
 export const data = new SlashCommandBuilder()
     .setName('eval')
     .setDescription('Виконати JavaScript-код')
@@ -18,15 +19,56 @@ export async function execute(interaction) {
     }
 
     const code = interaction.options.getString('code');
-    await interaction.deferReply();
-    try {
-        // Додаємо `db` до контексту eval, якщо MongoDB підключено
-        const db = interaction.client.db || null;
-        const result = await (async () => eval(code))();
-        const output = util.inspect(result, { depth: 2 });
+    await interaction.deferReply({ ephemeral: true });
 
-        await interaction.editReply(`📥 **Вхідний код:**\n\`\`\`js\n${code}\n\`\`\`\n📤 **Результат:**\n\`\`\`js\n${output}\n\`\`\``);
+    try {
+        // Створюємо контекст для виконання коду
+        const context = {
+            // Моделі
+            Guild,
+            User,
+            
+            // Об'єкти Discord
+            interaction,
+            client: interaction.client,
+            channel: interaction.channel,
+            guild: interaction.guild,
+            
+            // Утиліти
+            util,
+            
+            // Додаткові змінні
+            db: interaction.client.db || null,
+            
+            // Додайте інші необхідні змінні
+        };
+
+        // Створюємо асинхронну функцію з контекстом
+        const asyncFunc = async (context) => {
+            const { Guild, interaction, client, db, ...rest } = context;
+            try {
+                return await eval(code);
+            } catch (e) {
+                return Promise.reject(e);
+            }
+        };
+
+        // Виконуємо код
+        const result = await asyncFunc(context);
+
+        // Форматуємо вивід
+        const output = util.inspect(result, { 
+            depth: 2,
+            maxStringLength: 500,
+            colors: false
+        });
+
+        await interaction.editReply({
+            content: `📥 **Код:**\n\`\`\`js\n${code}\n\`\`\`\n📤 **Результат:**\n\`\`\`js\n${output.slice(0, 1900)}\n\`\`\``
+        });
     } catch (error) {
-        await interaction.editReply(`❌ **Помилка:**\n\`\`\`js\n${error}\n\`\`\``);
+        await interaction.editReply({
+            content: `❌ **Помилка:**\n\`\`\`js\n${error.stack || error}\n\`\`\``
+        });
     }
 }
