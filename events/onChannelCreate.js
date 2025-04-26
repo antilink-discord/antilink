@@ -14,7 +14,7 @@ const lg = new Logger();
 
 const GuildCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 хвилин
-const DELETE_LIMIT = 1; // Ліміт видалень перед покаранням
+const DELETE_LIMIT = 3; // Ліміт видалень перед покаранням
 
 export default {
     name: Events.ChannelCreate,

@@ -10,7 +10,7 @@ import { check_guild_cache } from '../utils/guildCache.js'
 import Guild from '../Schemas/guildSchema.js';
 
 const lg = new Logger();
-const DELETE_LIMIT = 1; // Ліміт видалень перед покаранням
+const DELETE_LIMIT = 3; // Ліміт видалень перед покаранням
 export default {
     name: Events.ChannelDelete,
     once: false,
