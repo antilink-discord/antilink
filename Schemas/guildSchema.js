@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-// Створення схеми для користувача
 const guildSchema = new mongoose.Schema({
 	_id: {
 		type: String,

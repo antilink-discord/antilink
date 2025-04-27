@@ -1,5 +1,4 @@
 import Guild from '../Schemas/guildSchema.js';
-import User from '../Schemas/userSchema.js';
 import { EmbedBuilder } from 'discord.js';
 import { get_lang } from './helper.js';
 import texts from './texts.js';

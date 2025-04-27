@@ -24,8 +24,6 @@ export default {
 
         if (interaction.isChatInputCommand()) {
             if (!interaction.inGuild()) return;
-
-            // 🔥 Оновлена логіка пошуку команди
             const command = interaction.client.commands.get(interaction.commandName)
                 || interaction.client.devCommands.get(interaction.commandName);
 
@@ -36,7 +34,6 @@ export default {
                 return;
             }
 
-            // 📌 Переконуємось, що система cooldown існує
             if (!interaction.client.cooldowns) {
                 interaction.client.cooldowns = new Collection();
             }

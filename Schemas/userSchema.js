@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-// Створення схеми для користувача
 const userSchema = new mongoose.Schema({
 	_id: {
 		type: String,

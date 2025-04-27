@@ -7,8 +7,8 @@ const lg = new Logger({ prefix: 'Bot' });
 export async function get_webhook(guildData, interaction) {
     try{
         if(guildData.logchannel) {
-            const webhookId = guildData.logchannel.split('/')[5]; // Отримуємо ID вебхука 
-            const webhook = await interaction.client.fetchWebhook(webhookId); // Отримуємо вебхук
+            const webhookId = guildData.logchannel.split('/')[5]; 
+            const webhook = await interaction.client.fetchWebhook(webhookId); 
             return webhook
         } else {
             return null
@@ -59,7 +59,7 @@ export async function settingsHandler(interaction) {
 
     let webhook_name, webhook_channel;
     if (guildData.logchannel) {
-        const webhook = await get_webhook(guildData, interaction); // Залиште цю функцію у вашому основному файлі
+        const webhook = await get_webhook(guildData, interaction); 
         if (webhook) {
             webhook_name = webhook.name;
             webhook_channel = webhook.channel;
@@ -73,7 +73,7 @@ export async function settingsHandler(interaction) {
         webhook_channel,
         userblocking,
         emoji_pack,
-        role_names: await format_whitelist(interaction), // Виклик функції форматування ролей
+        role_names: await format_whitelist(interaction),
     };
 }
 
@@ -81,7 +81,7 @@ export async function format_whitelist(interaction) {
     try {
         const GuildData = await Guild.findOne({ _id: interaction.guild.id });
         if (!GuildData || !GuildData.whitelist || GuildData.whitelist.length === 0) {
-            return []; // Повертаємо порожній масив, якщо немає ролей
+            return []; 
         }
 
         const rolesId = GuildData.whitelist;
@@ -91,16 +91,14 @@ export async function format_whitelist(interaction) {
         rolesId.forEach(roleId => {
             const role = interaction.guild.roles.cache.get(roleId);
             if (role) {
-                role_mentions.push(role.toString()); // Згадка про роль
-            } else {
-
-            }
+                role_mentions.push(role.toString()); 
+            } 
         });
 
-        return role_mentions; // Повертаємо масив згадок про ролі
+        return role_mentions; 
     } catch (error) {
         lg.error('Помилка у форматуванні білого списку:', error);
-        return []; // Повертаємо порожній масив у випадку помилки
+        return []; 
     }
 }
 

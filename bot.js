@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import Logger from './utils/logs.js';
-import{ Client, Collection, Events, GatewayIntentBits, REST, Routes } from 'discord.js';
+import{ Client, GatewayIntentBits } from 'discord.js';
 import 'dotenv/config'
 
 import mongoose from 'mongoose';

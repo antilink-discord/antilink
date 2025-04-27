@@ -1,4 +1,4 @@
-import { EmbedBuilder, WebhookClient } from 'discord.js';
+import { WebhookClient } from 'discord.js';
 
 const webhook = new WebhookClient({ url: process.env.DEV_GUILD_WEBHOOK });
 import Logger from './logs.js';
@@ -6,7 +6,7 @@ import Logger from './logs.js';
 const now = new Date();
 const formattedTime = now.toISOString().slice(0, 19).replace('T', ' ');
 const lg = new Logger({ prefix: 'Bot' });
-export async function sendJoinLogs(guild, client) {
+export async function sendJoinLogs(guild) {
 	try {
 
 		await webhook.send({ content: `> \`\`${formattedTime}\`\` бот приєднався до гільдії \`\`${guild.name} | ${guild.id}\`\`. Власник: \`\`${guild.ownerId}\`\`` });

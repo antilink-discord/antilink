@@ -1,4 +1,4 @@
-import { Events, Collection, REST, Routes, EmbedBuilder } from 'discord.js';
+import { Events } from 'discord.js';
 import 'dotenv/config'
 import Guild from '../Schemas/guildSchema.js';
 import { sendJoinLogs } from '../utils/devLogs.js';

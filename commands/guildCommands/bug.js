@@ -1,4 +1,4 @@
-import { EmbedBuilder, SlashCommandBuilder, WebhookClient, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
+import { SlashCommandBuilder, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle } from 'discord.js';
 import { get_lang } from '../../utils/helper.js';
 import texts from '../../utils/texts.js';
 

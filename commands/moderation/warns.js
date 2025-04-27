@@ -19,7 +19,6 @@ const lg = new Logger({ prefix: 'Bot' });
 	export async function execute(interaction) {
 		const userId = interaction.options.getString('user_id');
         const lang = await get_lang(interaction.client, interaction.guild.id);
-		// Перевірка, чи є це число
 		if (isNaN(userId)) {
 			return interaction.reply({
 				content: texts[lang].warns_NaN,
@@ -30,7 +29,6 @@ const lg = new Logger({ prefix: 'Bot' });
 
 		const userIdNumber = userId;
 
-		// Перевірка на валідність числа
 		if (isNaN(userIdNumber)) {
 			return interaction.reply({
 				content: texts[lang].warns_NaN,

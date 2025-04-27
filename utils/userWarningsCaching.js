@@ -13,7 +13,7 @@ class WarnsCacheManager {
     }
 
     
-    async check(user_id, message) {
+    async check(user_id) {
         try {
             const cacheEntry = this.cache.get(user_id);
             

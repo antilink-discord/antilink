@@ -14,8 +14,7 @@ export default {
 
 	async execute(message) {
 		try {
-
-			const guild = message.guild;
+			
 			const isRole = await check_whitelist_and_owner(message);
 			const user_id = message.author.id;
 			const channel_name = message.channel?.name ?? 'undefined'

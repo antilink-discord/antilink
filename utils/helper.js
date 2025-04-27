@@ -1,12 +1,6 @@
 import Guild from '../Schemas/guildSchema.js';
 import Logger from './logs.js';
 
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
 const lg = new Logger({ prefix: 'Bot' });
 
 export async function get_lang(client, guildId) {
@@ -51,8 +45,6 @@ export async function cacheGuildsLanguages(client, guilds) {
 export async function clear_guild_language_cache(client, guildId) {
 	if (client.guildLanguages.get(guildId)) {
 		client.guildLanguages.delete(guildId);
-	}
-	else {
 	}
 }
 
