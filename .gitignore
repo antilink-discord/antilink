@@ -6,9 +6,5 @@ AntiLink2.0.zip
 .prettierrc
 docker-compose.yml
 railway.json
-server.js
-utils/getGuildChannels.js
 .npm/
-events/onChannelCreate.js
-events/onChannelDelete.js
-utils/anticrashCaching.js
+eslint.config.js

@@ -1,36 +1,41 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
-	_id: {
-		type: String,
-		required: true,
-		unique: true,
-	},
-	warns: {
-		type: Number,
-		default: 0,
-	},
-	reasons: [{
-		author_id: {
-			type: String,
-			required: true,
-		},
-		message_content: {
-			type: String,
-		},
-		reason: {
-			type: String,
-			required: true,
-		},
-		proofs: {
-			type: String,
-		},
-		timestamp: {
-			type: String,
-		},
-	}],
-}, { collection: 'collusers' });
+const userSchema = new mongoose.Schema(
+  {
+    _id: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    warns: {
+      type: Number,
+      default: 0,
+    },
+    reasons: [
+      {
+        author_id: {
+          type: String,
+          required: true,
+        },
+        message_content: {
+          type: String,
+        },
+        reason: {
+          type: String,
+          required: true,
+        },
+        proofs: {
+          type: String,
+        },
+        timestamp: {
+          type: String,
+        },
+      },
+    ],
+  },
+  { collection: "collusers" },
+);
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
-export default User
+export default User;
