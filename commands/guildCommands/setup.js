@@ -2,9 +2,8 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   EmbedBuilder,
   MessageFlags,
-  Message,
-  ChannelType,
-  TextInputStyle,
+  ActionRowBuilder,
+  ButtonBuilder,
 } from "discord.js";
 import "moment-duration-format";
 import Guild from "../../Schemas/guildSchema.js";
@@ -15,7 +14,8 @@ import {
 } from "../../utils/helper.js";
 import texts from "../../utils/texts.js";
 import { check_owner_permission } from "../../utils/settingsHandler.js";
-import { text } from "stream/consumers";
+import Logger from "../../utils/logs.js";
+const lg = new Logger({ prefix: "Bot" });
 
 export const data = new SlashCommandBuilder()
   .setName("setup")
@@ -24,13 +24,12 @@ export const data = new SlashCommandBuilder()
     subcommand
       .setName("log_channel")
       .setDescription("Призначити канал логів на вашій гільдії")
-      .addStringOption(
-        (option) =>
-          option
-            .setName("webhook")
-            .setDescription("Виберіть вебхук для логування")
-            .setRequired(true)
-            .setAutocomplete(true), // Включає автодоповнення до setup вебхука
+      .addStringOption((option) =>
+        option
+          .setName("webhook")
+          .setDescription("Виберіть вебхук для логування")
+          .setRequired(true)
+          .setAutocomplete(true),
       ),
   )
   .addSubcommand((subcommand) =>
@@ -41,6 +40,19 @@ export const data = new SlashCommandBuilder()
         option
           .setName("role")
           .setDescription("Вибрана роль буде додана в білий список")
+          .setRequired(true),
+      ),
+  )
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("captcha_channel")
+      .setDescription("Призначає канал капчі на вашому сервері")
+      .addChannelOption((option) =>
+        option
+          .setName("destination")
+          .setDescription(
+            "У вибраний канал буде надсилатись embed для верифікації",
+          )
           .setRequired(true),
       ),
   )
@@ -96,21 +108,19 @@ export const data = new SlashCommandBuilder()
 
 export async function autocomplete(interaction) {
   try {
-    const webhooks = await interaction.guild.fetchWebhooks(); // Отримуємо вебхуки
-    const focusedValue = interaction.options.getFocused(); // Отримуємо введене значення
+    const webhooks = await interaction.guild.fetchWebhooks();
+    const focusedValue = interaction.options.getFocused();
 
-    // Фільтруємо вебхуки на основі введеного значення
     const filtered = Array.from(webhooks.values())
       .filter((wh) =>
         wh.name.toLowerCase().startsWith(focusedValue.toLowerCase()),
       )
       .slice(0, 25);
 
-    // Формуємо масив для відповідей
     const choices = filtered.map((wh) => {
       return {
         name: wh.name,
-        value: wh.id, // Можемо зберегти ID вебхука
+        value: wh.id,
       };
     });
 
@@ -121,7 +131,6 @@ export async function autocomplete(interaction) {
 }
 
 export async function execute(interaction) {
-  const lang = await get_lang(interaction.client, interaction.guild.id);
   if (interaction.options.getSubcommand() === "log_channel") {
     const lang = await get_lang(interaction.client, interaction.guild.id);
 
@@ -130,9 +139,9 @@ export async function execute(interaction) {
     if (isOwner === true) {
       try {
         const guildData = await Guild.findOne({ _id: interaction.guild.id });
-        const webhookId = interaction.options.getString("webhook"); // Отримуємо webhook ID з опцій
+        const webhookId = interaction.options.getString("webhook");
         const webhooks = await interaction.guild.fetchWebhooks();
-        const webhook = webhooks.get(webhookId); // Отримуємо вебхук з мапи
+        const webhook = webhooks.get(webhookId);
 
         if (!webhook) {
           return await interaction.reply({
@@ -174,12 +183,71 @@ export async function execute(interaction) {
     }
   }
 
+  if (interaction.options.getSubcommand() === "captcha_channel") {
+    const lang = await get_lang(interaction.client, interaction.guild.id);
+    const isOwner = await check_owner_permission(interaction);
+    if (isOwner === true) {
+      try {
+        const verifyChannel = interaction.options.getChannel("destination");
+
+        if (!verifyChannel) {
+          return interaction.reply({
+            content: `verifyChannel is not found`,
+            ephemeral: true,
+          });
+        } else {
+          let embed = new EmbedBuilder()
+            .setColor("#9400FF")
+            .setAuthor({
+              name: "Captcha verification" /*iconURL: 'https://i.imgur.com/dEpXhnr.jpeg'*/,
+            })
+            .setTitle(`Ласкаво просимо на сервер! 👋`)
+            .setDescription(
+              "Щоб отримати доступ до каналів, підтвердіть,\n" +
+                "що Ви не бот, виконавши звичайну капчу.\n" +
+                "\n" +
+                "✅  **Для верифікації потрібно:**\n" +
+                "\n```" +
+                "１. Натисніть кнопку “✔️ Верифікація”;\n" +
+                "２. Введіть капчу у поле, що з’явиться;\n" +
+                "３. Отримайте доступ до каналів.\n" +
+                "```\n\n",
+            )
+            .setFooter({
+              text: "З повагою, Адміністрація сервера. ❤️",
+            });
+
+          let btnRow = new ActionRowBuilder().addComponents(
+            new ButtonBuilder()
+              .setCustomId("verifyBtn")
+              .setLabel("✔️ Верифікація")
+              .setStyle(3),
+          );
+
+          await verifyChannel.send({
+            embeds: [embed],
+            components: [btnRow],
+          });
+
+          interaction.reply({
+            content: `Система верифікації призначена в ${verifyChannel}.`,
+            ephemeral: true,
+          });
+        }
+      } catch (error) {
+        await interaction.reply(texts[lang].main_error_message);
+        lg.error(error);
+        return;
+      }
+    }
+  }
+
   if (interaction.options.getSubcommand() === "logchannel_delete") {
     const lang = await get_lang(interaction.client, interaction.guild.id);
     const isOwner = await check_owner_permission(interaction);
     if (isOwner === true) {
       try {
-        const guildData = await Guild.findOne({ _id: interaction.guild.id });
+        let guildData = await Guild.findOne({ _id: interaction.guild.id });
 
         const SuccessfullEmbed = new EmbedBuilder()
           .setColor(0xaeffd8)
@@ -206,10 +274,10 @@ export async function execute(interaction) {
             embeds: [SuccessfullEmbed],
             flags: MessageFlags.Ephemeral,
           });
-        } else {
         }
       } catch (error) {
         await interaction.reply(texts[lang].main_error_message);
+        lg.error(error);
         return;
       }
     }
@@ -288,6 +356,7 @@ export async function execute(interaction) {
           ephemeral: true,
         });
       } catch (error) {
+        lg.error(error);
         await interaction.reply(texts[lang].main_error_message);
         return;
       }
@@ -300,7 +369,7 @@ export async function execute(interaction) {
     if (isOwner === true) {
       try {
         const choice = interaction.options.getString("ban_users_option");
-        const guildData = await Guild.findOne({ _id: interaction.guild.id });
+        let guildData = await Guild.findOne({ _id: interaction.guild.id });
         const isChoiceTrue = choice === "true";
 
         if (!guildData) {
@@ -308,7 +377,6 @@ export async function execute(interaction) {
           await guildData.save();
         }
         if (guildData.blocking_enabled === isChoiceTrue) {
-          // Перевірка, чи було введено той самий параметр, який вже встановлений на сервері
           await interaction.reply(texts[lang].setup_banusers_isthesame);
           return;
         }
@@ -380,13 +448,11 @@ export async function execute(interaction) {
             texts[lang].setup_role_removed.replace("${role}", roleId),
           );
         if (!role) {
-          // Роль не знайдена, відправляємо повідомлення
           await interaction.reply({
             content: texts[lang].setup_role_not_found,
             flags: MessageFlags.Ephemeral,
           });
         } else {
-          // Роль знайдена, видаляємо її
           await Guild.updateOne(
             { _id: interaction.guild.id },
             { $pull: { whitelist: roleId } },
@@ -397,7 +463,7 @@ export async function execute(interaction) {
           });
         }
       } catch (error) {
-        console.error(error); // Логуємо помилку для відладки
+        console.error(error);
         await interaction.reply(texts[lang].main_error_message);
       }
     }
