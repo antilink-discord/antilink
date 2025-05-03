@@ -73,6 +73,15 @@ export default {
 
     bug_succeffsull:
       "Ви успішно відправили знайдену помилку. Дякую за підтримку!",
+    
+    verification_embed_author: "Перевірка на робота",
+    verification_title: "Ласкаво просимо!",
+    verification_description: "Перед тим, як Ви отримаєте доступ до серверу - ви повинні пройти верифікацію",
+  
+    verification_answer_description: "Будь ласка, натисніть кнопку **Ввести** нижче і введіть код капчі.`",
+    verification_answer_footer: "У вас є 60 секунд, щоб завершити капчу",
+    verification_put_captcha: "Введіть капчу",
+    verification_old_captchd: "Капча застарала. Будь ласка, спробуйте знову."
   },
   en: {
     main_error_message: "**❌An error occurred while executing your command.**",
@@ -151,5 +160,12 @@ export default {
 
     bug_succeffsull:
       "The bug has been sent successfully. Thank you for support!",
+
+    verification_embed_author: "Verify that you're not a robot",
+    verification_title: "Welcome!",
+    verification_description: "Before you will get member role - please, complete captcha.",
+    verification_already_verifed: "You're already verified.",
+
+
   },
 };

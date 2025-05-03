@@ -4,6 +4,7 @@ import {
   MessageFlags,
   ActionRowBuilder,
   ButtonBuilder,
+  ButtonStyle
 } from "discord.js";
 import "moment-duration-format";
 import Guild from "../../Schemas/guildSchema.js";
@@ -45,6 +46,29 @@ export const data = new SlashCommandBuilder()
   )
   .addSubcommand((subcommand) =>
     subcommand
+      .setName("unverifed_role")
+      .setDescription("Призначити роль до верифікації")
+      .addRoleOption((option) =>
+        option
+          .setName("role")
+          .setDescription("Вибрана роль буде призначатись після приєднання користувача")
+          .setRequired(true),
+      ),
+  )
+
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("verifed_role")
+      .setDescription("Призначити роль після верифікації")
+      .addRoleOption((option) =>
+        option
+          .setName("role")
+          .setDescription("Вибрана роль буде призначатись після верифікації")
+          .setRequired(true),
+      ),
+  )
+  .addSubcommand((subcommand) =>
+    subcommand
       .setName("captcha_channel")
       .setDescription("Призначає канал капчі на вашому сервері")
       .addChannelOption((option) =>
@@ -73,6 +97,24 @@ export const data = new SlashCommandBuilder()
           ),
       ),
   )
+  .addSubcommand((subcommand) =>
+    subcommand
+      .setName("captcha_system")
+      .setDescription(
+        "Вмикає на сервері верифікацію користувачів при приєднанні",
+      )
+      .addStringOption((option) =>
+        option
+          .setName("captcha_option")
+          .setDescription("Виберіть параметр")
+          .setRequired(true)
+          .addChoices(
+            { name: "увімкнути", value: "true" },
+            { name: "вимкнути", value: "false" },
+          ),
+      ),
+  )
+
   .addSubcommand((subcommand) =>
     subcommand
       .setName("language")
@@ -186,12 +228,14 @@ export async function execute(interaction) {
   if (interaction.options.getSubcommand() === "captcha_channel") {
     const lang = await get_lang(interaction.client, interaction.guild.id);
     const isOwner = await check_owner_permission(interaction);
+
     if (isOwner === true) {
       try {
+        await interaction.deferReply({ ephemeral: true});
         const verifyChannel = interaction.options.getChannel("destination");
 
         if (!verifyChannel) {
-          return interaction.reply({
+          return interaction.editReply({
             content: `verifyChannel is not found`,
             ephemeral: true,
           });
@@ -199,48 +243,174 @@ export async function execute(interaction) {
           let embed = new EmbedBuilder()
             .setColor("#9400FF")
             .setAuthor({
-              name: "Captcha verification" /*iconURL: 'https://i.imgur.com/dEpXhnr.jpeg'*/,
+              name: texts[lang].verification_embed_author, iconURL: interaction.guild.iconURL(),
             })
-            .setTitle(`Ласкаво просимо на сервер! 👋`)
-            .setDescription(
-              "Щоб отримати доступ до каналів, підтвердіть,\n" +
-                "що Ви не бот, виконавши звичайну капчу.\n" +
-                "\n" +
-                "✅  **Для верифікації потрібно:**\n" +
-                "\n```" +
-                "１. Натисніть кнопку “✔️ Верифікація”;\n" +
-                "２. Введіть капчу у поле, що з’явиться;\n" +
-                "３. Отримайте доступ до каналів.\n" +
-                "```\n\n",
-            )
+            .setTitle(texts[lang].verification_title)
+            .setDescription(texts[lang].verification_description)
             .setFooter({
-              text: "З повагою, Адміністрація сервера. ❤️",
+              text: "Powered by AntiLink",
             });
 
           let btnRow = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
-              .setCustomId("verifyBtn")
-              .setLabel("✔️ Верифікація")
-              .setStyle(3),
+              .setCustomId('verifyBtn')
+              .setLabel('❌Disabled')
+              .setStyle(ButtonStyle.Danger)
+              .setDisabled(true)
           );
+          const guildData = await Guild.findOne({ _id: interaction.guild.id});
 
-          await verifyChannel.send({
+          if(guildData?.verificationSystem?.captcha_channel_id && guildData?.verificationSystem?.captcha_embed_message_id) {
+            const verificationChannel = await interaction.guild.channels.fetch(guildData.verificationSystem.captcha_channel_id);
+            console.log(verificationChannel)
+            const message = await verificationChannel.messages.fetch(guildData.verificationSystem.captcha_embed_message_id).catch(e => {
+              lg.error(e);
+              return
+            });
+            if(message) {
+              await message.delete().catch(error => {
+                lg.error(error)
+              }) 
+            }
+            
+            
+          }
+          const sentMessage = await verifyChannel.send({
             embeds: [embed],
             components: [btnRow],
           });
 
-          interaction.reply({
-            content: `Система верифікації призначена в ${verifyChannel}.`,
-            ephemeral: true,
-          });
+
+          await Promise.all([
+            Guild.updateOne(
+              { _id: interaction.guild.id, "verificationSystem.0": { $exists: true } },
+              {
+                $set: {
+                  "verificationSystem.captcha_channel_id": verifyChannel.id,
+                  "verificationSystem.captcha_embed_message_id": sentMessage.id
+                }
+              }
+            ).then(async (result) => {
+              if (result.matchedCount === 0) {
+  
+                await Guild.updateOne(
+                  { _id: interaction.guild.id },
+                  {
+                    $set: {
+                      "verificationSystem.captcha_channel_id": verifyChannel.id,
+                      "verificationSystem.captcha_embed_message_id": sentMessage.id
+                    }
+                  },
+                  { upsert: true }
+                );
+  
+              }
+            }),
+
+            interaction.editReply({
+              content: `Система верифікації призначена в ${verifyChannel}.`,
+              ephemeral: true,
+            })
+          ])
         }
       } catch (error) {
-        await interaction.reply(texts[lang].main_error_message);
+        await interaction.editReply(texts[lang].main_error_message);
         lg.error(error);
         return;
       }
     }
   }
+
+  if (interaction.options.getSubcommand() === "captcha_system") {
+    const lang = await get_lang(interaction.client, interaction.guild.id);
+    const isOwner = await check_owner_permission(interaction);
+    if (isOwner === true) {
+      try {
+        const choice = interaction.options.getString("captcha_option");
+        let guildData = await Guild.findOne({ _id: interaction.guild.id });
+        const isChoiceTrue = choice === "true";
+
+        if (!guildData) {
+          guildData = new Guild({ _id: interaction.guild.id });
+          await guildData.save();
+        }
+        if (guildData.verificationSystem.isEnabled === isChoiceTrue) {
+          await interaction.reply(texts[lang].setup_banusers_isthesame);
+          return;
+        }
+        if (choice === "true") {
+          try {
+            await Guild.updateOne(
+              { _id: interaction.guild.id },
+              { $set: { 'verificationSystem.isEnabled': true } },
+            );
+
+            const newButton = new ButtonBuilder()
+              .setCustomId("verifyBtn")
+              .setLabel("✔️ Verify")
+              .setStyle(3)
+
+            const row = new ActionRowBuilder().addComponents(newButton);
+            const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e))
+
+            await messageChannel.messages.fetch(guildData?.verificationSystem.captcha_embed_message_id)
+              .then(messageToEdit => messageToEdit.edit({ components: [row] }))
+              .catch(error => console.error('Помилка при редагуванні повідомлення:', error));
+
+            const SuccessfullEmbed = new EmbedBuilder()
+              .setColor(colors.SUCCESSFUL_COLOR)
+              .setThumbnail(
+                interaction.guild.iconURL({ dynamic: true, size: 1024 }),
+              )
+              .setTitle(texts[lang].setup_successful)
+              .setDescription(texts[lang].setup_banusers_enabled);
+            await interaction.reply({
+              embeds: [SuccessfullEmbed],
+              flags: MessageFlags.Ephemeral,
+            });
+          } catch (error) {
+            lg.error(error);
+          }
+        } else if (choice === "false") {
+          try {
+            await Guild.updateOne(
+              { _id: interaction.guild.id },
+              { $set: { 'verificationSystem.isEnabled': false } },
+            );
+
+            const newButton = new ButtonBuilder()
+              .setCustomId("verifyBtn")
+              .setLabel("✔️ Verify")
+              .setStyle(3)
+            const row = new ActionRowBuilder().addComponents(newButton);
+            const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e))
+
+            await messageChannel.messages.fetch(guildData?.verificationSystem.captcha_embed_message_id)
+              .then(messageToEdit => messageToEdit.edit({ components: [row] }))
+              .catch(error => console.error('Помилка при редагуванні повідомлення:', error));
+
+
+            const SuccessfullEmbed = new EmbedBuilder()
+              .setColor(colors.SUCCESSFUL_COLOR)
+              .setThumbnail(
+                interaction.guild.iconURL({ dynamic: true, size: 1024 }),
+              )
+              .setTitle(texts[lang].setup_successful)
+              .setDescription(texts[lang].setup_banusers_disabled);
+            await interaction.reply({
+              embeds: [SuccessfullEmbed],
+              flags: MessageFlags.Ephemeral,
+            });
+          } catch (error) {
+            lg.error(error);
+          }
+        }
+      } catch (error) {
+        lg.error(error);
+      }
+    }
+  }
+
 
   if (interaction.options.getSubcommand() === "logchannel_delete") {
     const lang = await get_lang(interaction.client, interaction.guild.id);
@@ -320,6 +490,85 @@ export async function execute(interaction) {
       return;
     }
   }
+
+  if (interaction.options.getSubcommand() === "verifed_role") {
+    const lang = await get_lang(interaction.client, interaction.guild.id);
+    try {
+      const role = interaction.options.getRole("role");
+
+      let guildData = await Guild.findOne({ _id: interaction.guild.id });
+      if (!guildData) {
+        guildData = new Guild({ _id: interaction.guild.id });
+        await guildData.save();
+      }
+      if (guildData.verificationSystem?.verifedRoleId !== role.id) {
+        guildData.verificationSystem.verifedRoleId = (role.id);
+        await guildData.save();
+        const SuccessfullEmbed = new EmbedBuilder()
+          .setColor(colors.SUCCESSFUL_COLOR)
+          .setThumbnail(
+            interaction.guild.iconURL({ dynamic: true, size: 1024 }),
+          )
+          .setTitle(texts[lang].setup_successful)
+          .setDescription(
+            texts[lang].setup_whitelist_changed.replace("${role}", role),
+          );
+        await interaction.reply({
+          embeds: [SuccessfullEmbed],
+          flags: MessageFlags.Ephemeral,
+        });
+      } else {
+        await interaction.reply({
+          content: texts[lang].setup_whitelist_already_is,
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    } catch (error) {
+      await interaction.reply(texts[lang].main_error_message);
+      lg.error("verifedRoleId error" + error);
+      return;
+    }
+  }
+
+  if (interaction.options.getSubcommand() === "unverifed_role") {
+    const lang = await get_lang(interaction.client, interaction.guild.id);
+    try {
+      const role = interaction.options.getRole("role");
+
+      let guildData = await Guild.findOne({ _id: interaction.guild.id });
+      if (!guildData) {
+        guildData = new Guild({ _id: interaction.guild.id });
+        await guildData.save();
+      }
+      if (guildData.verificationSystem?.unvefivedRoleID !== role.id) {
+        guildData.verificationSystem.unvefivedRoleID = (role.id);
+        await guildData.save();
+        const SuccessfullEmbed = new EmbedBuilder()
+          .setColor(colors.SUCCESSFUL_COLOR)
+          .setThumbnail(
+            interaction.guild.iconURL({ dynamic: true, size: 1024 }),
+          )
+          .setTitle(texts[lang].setup_successful)
+          .setDescription(
+            texts[lang].setup_whitelist_changed.replace("${role}", role),
+          );
+        await interaction.reply({
+          embeds: [SuccessfullEmbed],
+          flags: MessageFlags.Ephemeral,
+        });
+      } else {
+        await interaction.reply({
+          content: texts[lang].setup_whitelist_already_is,
+          flags: MessageFlags.Ephemeral,
+        });
+      }
+    } catch (error) {
+      await interaction.reply(texts[lang].main_error_message);
+      lg.error("unverifed_role error" + error);
+      return;
+    }
+  }
+
   if (interaction.options.getSubcommand() === "language") {
     const isOwner = await check_owner_permission(interaction);
     const lang = await get_lang(interaction.client, interaction.guild.id);

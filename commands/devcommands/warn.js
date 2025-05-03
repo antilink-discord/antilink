@@ -1,5 +1,4 @@
 import { SlashCommandBuilder } from "@discordjs/builders";
-import { EmbedBuilder } from "discord.js";
 import Warning from "../../Schemas/userSchema.js"; // Шлях до схеми попереджень
 import "dotenv/config";
 import { delete_cache } from "../../utils/userWarningsCaching.js";
@@ -45,7 +44,6 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction) {
-  const role = interaction.guild.roles.cache.get(MOD_ROLE_ID);
   if (interaction.guild.id == SUPPORT_SERVER_ID) {
     if (
       interaction.member.roles.cache.get(MOD_ROLE_ID) ||

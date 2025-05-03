@@ -6,6 +6,10 @@ import {
   TextInputBuilder,
   Events,
 } from "discord.js";
+import {
+  get_lang,
+} from "../utils/helper.js";
+
 import dotenv from "dotenv";
 import "dotenv/config";
 import svgCaptcha from "svg-captcha";
@@ -13,6 +17,8 @@ import fs from "fs";
 import sharp from "sharp";
 import Logger from "../utils/logs.js";
 const lg = new Logger("Bot");
+import Guild from "../Schemas/guildSchema.js";
+import texts from "../utils/texts.js";
 
 dotenv.config();
 const VERIFICATION_ROLE_ID = process.env.VERIFICATION_ROLE_ID;
@@ -39,26 +45,19 @@ export default {
   name: Events.InteractionCreate,
   async execute(interaction) {
     try {
-      // const webhook = new WebhookClient({ url: process.env.CAPTCHA_LOG_URL });
-
+      const lang = await get_lang(interaction.client, interaction.guild.id);
+      let guildData = await Guild.findOne({ _id: interaction.guild.id });
       if (interaction.isButton()) {
         if (interaction.customId === "verifyBtn") {
           const verifyRole =
-            interaction.guild.roles.cache.get(VERIFICATION_ROLE_ID);
-          if (!verifyRole) {
-            return interaction.reply({
-              content:
-                "Роль верифікації не знайдена. Будь ласка, зв'яжіться з адміністрацією.",
-              ephemeral: true,
-            });
-          }
+          interaction.guild.roles.fetch(guildData?.verificationSystem.verifedRoleId);
 
-          if (interaction.member.roles.cache.has(verifyRole.id)) {
+          if (interaction.member.roles.cache.has(verifyRole.id) || interaction.user.id === interaction.guild.ownerId) {
             return interaction.reply({
               embeds: [
                 new EmbedBuilder()
                   .setColor("#ffffff")
-                  .setTitle(`Ви вже верифіковані.`),
+                  .setTitle(texts[lang].verification_already_verifed),
               ],
               ephemeral: true,
             });
@@ -69,8 +68,6 @@ export default {
 
           const filePath = `captcha_${interaction.user.id}.png`;
           await sharp(Buffer.from(captchaImage)).png().toFile(filePath);
-
-          lg.info("Captcha image saved to:", filePath);
 
           let enterBtnRow = new ActionRowBuilder().addComponents([
             new ButtonBuilder()
@@ -83,11 +80,9 @@ export default {
             embeds: [
               new EmbedBuilder()
                 .setColor("#ffffff")
-                .setTitle("Перевірка на робота")
-                .setDescription(
-                  `Будь ласка, натисніть кнопку **Ввести** нижче і введіть код капчі.`,
-                )
-                .setFooter({ text: "У вас є 60 секунд, щоб завершити капчу" })
+                .setTitle(texts[lang].verification_embed_author)
+                .setDescription(texts[lang].verification_answer_description)
+                .setFooter({ text: texts[lang].verification_answer_footer })
                 .setImage(`attachment://${filePath}`),
             ],
             components: [enterBtnRow],
@@ -99,22 +94,21 @@ export default {
             fs.unlinkSync(filePath);
           }, 5000);
 
-          lg.info("Captcha image sent in response");
         }
       }
 
       if (interaction.customId === "openModal") {
         const modal = new ModalBuilder()
           .setCustomId("captcha-modal")
-          .setTitle("Перевірте себе")
+          .setTitle(texts[lang].verification_embed_author)
           .addComponents([
             new ActionRowBuilder().addComponents(
               new TextInputBuilder()
                 .setCustomId("captcha-input")
-                .setLabel("Введіть капчу")
+                .setLabel(texts[lang].verification_put_captcha)
                 .setStyle(1)
                 .setMaxLength(4)
-                .setPlaceholder("наприклад, 1234")
+                .setPlaceholder("1234")
                 .setRequired(true),
             ),
           ]);
@@ -133,7 +127,7 @@ export default {
 
           if (!correctAnswer) {
             return interaction.reply({
-              content: "Капча застарала. Будь ласка, спробуйте знову.",
+              content: texts[lang].verification_old_captcha,
               ephemeral: true,
             });
           }
@@ -157,6 +151,7 @@ export default {
 
             const verifyRole =
               interaction.guild.roles.cache.get(VERIFICATION_ROLE_ID);
+
             const unverifedRole =
               interaction.guild.roles.cache.get(UNVERIFED_ROLE_ID);
             if (unverifedRole) {
