@@ -72,7 +72,7 @@ export default {
 
                 const deleteCount = await channel_delete_cache_check(guildId, executor.id);
                 lg.debug(deleteCount)
-                if (deleteCount > DELETE_LIMIT) {
+                if (deleteCount >= DELETE_LIMIT) {
                     if (!isTimedOut(member)) {
                         await freezeUser(channel.guild, executor.id);
                     }
@@ -86,7 +86,6 @@ export default {
     }
 };
 
-// Перевіряємо, чи користувач у тайм-ауті
 const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.now();
 
 // Функція для блокування порушника (timeout або ban замість кіка)

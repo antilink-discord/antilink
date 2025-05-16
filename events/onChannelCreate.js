@@ -67,8 +67,8 @@ export default {
                     return;
                 }
 
-                // Перевірка на дозволену роль
-                const memberRoles = member.roles.cache; // Отримуємо ролі користувача
+             
+                const memberRoles = member.roles.cache; 
 
                 const whitelist_data = guildData?.antinuke_whitelist ?? [];
                 
@@ -91,11 +91,12 @@ export default {
                     add_channel_create_to_cache(guildId, executor.id)
                 ]);
 
-                // Перевіряємо скільки каналів він видалив
+    
                 const deleteCount = await channel_create_cache_check(guildId, executor.id);
                 lg.debug(deleteCount)
                 // Покарання тільки якщо перевищено ліміт
-                if (deleteCount > DELETE_LIMIT) {
+                if (deleteCount >= DELETE_LIMIT) {
+                    
                     if (!isTimedOut(member)) {
                         await freezeUser(channel.guild, executor.id);
                     }
@@ -110,5 +111,4 @@ export default {
     }
 };
 
-// Перевіряємо, чи користувач у тайм-ауті
 const isTimedOut = member => member.communicationDisabledUntilTimestamp > Date.now();
