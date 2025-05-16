@@ -380,11 +380,12 @@ export async function execute(interaction) {
 
             const newButton = new ButtonBuilder()
               .setCustomId("verifyBtn")
-              .setLabel("✔️ Verify")
-              .setStyle(3)
+              .setLabel("❌Disabled")
+              .setStyle(ButtonStyle.Danger)
+              .setDisabled(true)
             const row = new ActionRowBuilder().addComponents(newButton);
             const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e))
-
+            lg.debug(messageChannel)
             await messageChannel.messages.fetch(guildData?.verificationSystem.captcha_embed_message_id)
               .then(messageToEdit => messageToEdit.edit({ components: [row] }))
               .catch(error => console.error('Помилка при редагуванні повідомлення:', error));

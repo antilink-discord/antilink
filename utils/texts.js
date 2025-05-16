@@ -77,7 +77,8 @@ export default {
     verification_embed_author: "Перевірка на робота",
     verification_title: "Ласкаво просимо!",
     verification_description: "Перед тим, як Ви отримаєте доступ до серверу - ви повинні пройти верифікацію",
-  
+    verification_already_verifed: "Ви вже верифіковані",
+
     verification_answer_description: "Будь ласка, натисніть кнопку **Ввести** нижче і введіть код капчі.`",
     verification_answer_footer: "У вас є 60 секунд, щоб завершити капчу",
     verification_put_captcha: "Введіть капчу",

@@ -28,7 +28,7 @@ export async function ban_member(message, user_cache) {
     lg.error(error);
     try {
       const member = message.guild.members.cache.get(message.author.id);
-      await member.ban();
+      await member.kick();
     } catch (error) {
       lg.error(error);
     }
