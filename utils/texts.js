@@ -166,7 +166,8 @@ export default {
     verification_title: "Welcome!",
     verification_description: "Before you will get member role - please, complete captcha.",
     verification_already_verifed: "You're already verified.",
-
-
+    verification_put_captcha: "Write the captcha code",
+    verification_answer_description: "Please click the **Enter** button below and enter the captcha code.`",
+    verification_answer_footer: "You have 60 seconds to solve the captcha.",
   },
 };

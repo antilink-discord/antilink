@@ -72,3 +72,53 @@ export async function guild_ban_log(message, user_id, channel_name) {
     lg.error(error);
   }
 }
+
+export async function user_failed_captcha(user, guild, correctAnswer, response) {
+  try {
+    const guildData = await Guild.findOne({ _id: guild.id });
+    const guild_logchannel = guildData.logchannel;
+    if (guild_logchannel) {
+      const lang = await get_lang(guild.client, guild.id);
+
+      const webhook = new WebhookClient({ url: guild_logchannel });
+      const log_embed = new EmbedBuilder()
+
+          .setColor('#ff0000')
+          .setTitle(`Користувач провалив капчу`)
+          .addFields(
+              { name: "Користувач:", value: `${user} | \`\`${user.id}\`\``, inline: false},
+              { name: "Надіслана капча:", value: `**${correctAnswer}**`, inline: true},
+              { name: "Отримана відповідь", value: `**${response}**`}
+
+          )
+          await webhook.send({ embeds: [log_embed] });
+        }
+      
+    } catch (error) {
+    lg.error(error);
+  }
+  }
+
+  export async function user_solved_captcha(user, guild, correctAnswer, response) {
+  try {
+    const guildData = await Guild.findOne({ _id: guild.id });
+    const guild_logchannel = guildData.logchannel;
+    if (guild_logchannel) {
+      const lang = await get_lang(guild.client, guild.id);
+
+      const webhook = new WebhookClient({ url: guild_logchannel });
+      const log_embed = new EmbedBuilder()
+
+        .setColor(0x7dd321)
+        .setTitle(`Користувач виконав капчу`)
+        .addFields(
+          { name: "Користувач:", value: `${user} | \`\`${user.id}\`\``, inline: false },
+          { name: "Отримана відповідь", value: `**${response}**` }
+        );
+      await webhook.send({ embeds: [log_embed] });
+    } 
+  }catch (error) {
+    lg.error(error);
+  }
+}
+

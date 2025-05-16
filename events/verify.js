@@ -9,7 +9,10 @@ import {
 import {
   get_lang,
 } from "../utils/helper.js";
-
+import {
+  user_failed_captcha,
+  user_solved_captcha
+}from "../utils/guildLogs.js";
 import dotenv from "dotenv";
 import "dotenv/config";
 import svgCaptcha from "svg-captcha";
@@ -47,10 +50,10 @@ export default {
     try {
       const lang = await get_lang(interaction.client, interaction.guild.id);
       let guildData = await Guild.findOne({ _id: interaction.guild.id });
+
       if (interaction.isButton()) {
         if (interaction.customId === "verifyBtn") {
-          const verifyRole =
-          interaction.guild.roles.fetch(guildData?.verificationSystem.verifedRoleId);
+          const verifyRole = await interaction.guild.roles.fetch(guildData?.verificationSystem.verifedRoleId);
 
           if (interaction.member.roles.cache.has(verifyRole.id) || interaction.user.id === interaction.guild.ownerId) {
             return interaction.reply({
@@ -93,27 +96,26 @@ export default {
           setTimeout(() => {
             fs.unlinkSync(filePath);
           }, 5000);
-
         }
-      }
 
-      if (interaction.customId === "openModal") {
-        const modal = new ModalBuilder()
-          .setCustomId("captcha-modal")
-          .setTitle(texts[lang].verification_embed_author)
-          .addComponents([
-            new ActionRowBuilder().addComponents(
-              new TextInputBuilder()
-                .setCustomId("captcha-input")
-                .setLabel(texts[lang].verification_put_captcha)
-                .setStyle(1)
-                .setMaxLength(4)
-                .setPlaceholder("1234")
-                .setRequired(true),
-            ),
-          ]);
+        if (interaction.customId === "openModal") {
+          const modal = new ModalBuilder()
+            .setCustomId("captcha-modal")
+            .setTitle(texts[lang].verification_embed_author)
+            .addComponents([
+              new ActionRowBuilder().addComponents(
+                new TextInputBuilder()
+                  .setCustomId("captcha-input")
+                  .setLabel(texts[lang].verification_put_captcha)
+                  .setStyle(1)
+                  .setMaxLength(4)
+                  .setPlaceholder("1234")
+                  .setRequired(true),
+              ),
+            ]);
 
-        await interaction.showModal(modal);
+          await interaction.showModal(modal);
+        }
       }
 
       if (interaction.isModalSubmit()) {
@@ -121,9 +123,7 @@ export default {
           const response = interaction.fields
             .getTextInputValue("captcha-input")
             .trim();
-          const correctAnswer = CAPTCHA_STORAGE.get(
-            interaction.user.id,
-          )?.trim();
+          const correctAnswer = CAPTCHA_STORAGE.get(interaction.user.id)?.trim();
 
           if (!correctAnswer) {
             return interaction.reply({
@@ -133,32 +133,23 @@ export default {
           }
 
           let captchaMessage;
-          // let captchaLog;
+
           if (response === correctAnswer) {
             captchaMessage = new EmbedBuilder()
               .setColor("#ffffff")
               .setTitle("🎉 Ви успішно пройшли верифікацію!")
               .setDescription("Тепер ви маєте доступ до серверу!");
 
-            // captchaLog = new EmbedBuilder()
-            //     .setColor(0x7dd321)
-            //     .setTitle(`Користувач виконав капчу`)
-            //     .addFields(
-            //         { name: "Користувач:", value: `${interaction.user} | \`\`${interaction.user.id}\`\``, inline: false},
-            //         { name: "Отримана відповідь", value: `**${response}**`}
+              
+            const verifyRole = interaction.guild.roles.cache.get(VERIFICATION_ROLE_ID);
+            const unverifedRole = interaction.guild.roles.cache.get(UNVERIFED_ROLE_ID);
 
-            //     )
-
-            const verifyRole =
-              interaction.guild.roles.cache.get(VERIFICATION_ROLE_ID);
-
-            const unverifedRole =
-              interaction.guild.roles.cache.get(UNVERIFED_ROLE_ID);
             if (unverifedRole) {
               await interaction.member.roles
                 .remove(unverifedRole)
                 .catch((e) => lg.error(e));
             }
+
             if (verifyRole) {
               await interaction.member.roles
                 .add(verifyRole)
@@ -166,6 +157,12 @@ export default {
             }
 
             CAPTCHA_STORAGE.delete(interaction.user.id);
+
+            await user_solved_captcha(interaction.user, interaction.guild, correctAnswer, response)
+            await interaction.reply({
+              embeds: [captchaMessage],
+              ephemeral: true,
+            });
           } else {
             captchaMessage = new EmbedBuilder()
               .setColor("#ff0000")
@@ -174,25 +171,15 @@ export default {
                 "Ви ввели неправильну капчу... Будь ласка, спробуйте ще раз.",
               );
 
-            // captchaLog = new EmbedBuilder()
-            //     .setColor('#ff0000')
-            //     .setTitle(`Користувач провалив капчу`)
-            //     .addFields(
-            //         { name: "Користувач:", value: `${interaction.user} | \`\`${interaction.user.id}\`\``, inline: false},
-            //         { name: "Надіслана капча:", value: `**${correctAnswer}**`, inline: true},
-            //         { name: "Отримана відповідь", value: `**${response}**`}
-
-            //     )
+            await Promise.all([
+              interaction
+                .reply({ embeds: [captchaMessage], ephemeral: true })
+                .catch((error) => {
+                  lg.error(error);
+                }),
+              user_failed_captcha(interaction.user, interaction.guild, correctAnswer, response),
+            ]);
           }
-
-          await Promise.all([
-            // webhook.send({ embeds: [captchaLog] }).catch(error => { lg.error(error)}),
-            interaction
-              .reply({ embeds: [captchaMessage], ephemeral: true })
-              .catch((error) => {
-                lg.error(error);
-              }),
-          ]);
         }
       }
     } catch (error) {

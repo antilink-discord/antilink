@@ -251,15 +251,25 @@ export async function execute(interaction) {
               text: "Powered by AntiLink",
             });
 
-          let btnRow = new ActionRowBuilder().addComponents(
-            new ButtonBuilder()
-              .setCustomId('verifyBtn')
-              .setLabel('❌Disabled')
-              .setStyle(ButtonStyle.Danger)
-              .setDisabled(true)
-          );
           const guildData = await Guild.findOne({ _id: interaction.guild.id});
-
+          let btnRow;
+            if(guildData.verificationSystem?.isEnabled === false) {
+                btnRow = new ActionRowBuilder().addComponents(
+                  new ButtonBuilder()
+                    .setCustomId('verifyBtn')
+                    .setLabel('❌Disabled')
+                    .setStyle(ButtonStyle.Danger)
+                    .setDisabled(true)
+                );
+            } else {
+              btnRow = btnRow = new ActionRowBuilder().addComponents(
+                new ButtonBuilder()
+              .setCustomId("verifyBtn")
+              .setLabel("✔️ Verify")
+              .setStyle(ButtonStyle.Success)
+              )
+            }
+         
           if(guildData?.verificationSystem?.captcha_channel_id && guildData?.verificationSystem?.captcha_embed_message_id) {
             const verificationChannel = await interaction.guild.channels.fetch(guildData.verificationSystem.captcha_channel_id);
             console.log(verificationChannel)
@@ -279,7 +289,6 @@ export async function execute(interaction) {
             embeds: [embed],
             components: [btnRow],
           });
-
 
           await Promise.all([
             Guild.updateOne(
@@ -348,7 +357,7 @@ export async function execute(interaction) {
             const newButton = new ButtonBuilder()
               .setCustomId("verifyBtn")
               .setLabel("✔️ Verify")
-              .setStyle(3)
+              .setStyle(ButtonStyle.Success)
 
             const row = new ActionRowBuilder().addComponents(newButton);
             const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e))
