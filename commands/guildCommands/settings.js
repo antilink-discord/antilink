@@ -26,8 +26,9 @@ export async function execute(interaction) {
         userblocking,
         role_names,
         emoji_pack,
+        verifed_role,
+        unverifed_role
       } = await settingsHandler(interaction);
-
       const linkButton = new ButtonBuilder()
         .setURL("https://antilink.pp.ua/")
         .setLabel(texts[lang].dashboard_button)
@@ -57,6 +58,16 @@ export async function execute(interaction) {
           {
             name: `${texts[lang].settings_blocking}`,
             value: userblocking,
+            inline: false,
+          },
+          {
+            name: `Join role`,
+            value: unverifed_role.toString(),
+            inline: true,
+          },
+               {
+            name: `Verifed role`,
+            value: verifed_role.toString(),
             inline: false,
           },
         )

@@ -23,6 +23,7 @@ const lg = new Logger("Bot");
 import Guild from "../Schemas/guildSchema.js";
 import texts from "../utils/texts.js";
 
+
 dotenv.config();
 const VERIFICATION_ROLE_ID = process.env.VERIFICATION_ROLE_ID;
 const UNVERIFED_ROLE_ID = process.env.UNVERIFED_ROLE_ID;
@@ -141,8 +142,13 @@ export default {
               .setDescription("Тепер ви маєте доступ до серверу!");
 
               
-            const verifyRole = interaction.guild.roles.cache.get(VERIFICATION_ROLE_ID);
-            const unverifedRole = interaction.guild.roles.cache.get(UNVERIFED_ROLE_ID);
+            const [verifyRole, unverifedRole] = await Promise.all([
+              interaction.guild.roles.fetch(VERIFICATION_ROLE_ID),
+              interaction.guild.roles.fetch(UNVERIFED_ROLE_ID)
+            ]).catch(error => {
+              lg.error(error)
+            })
+  
 
             if (unverifedRole) {
               await interaction.member.roles

@@ -61,7 +61,7 @@ export async function settingsHandler(interaction) {
     userblocking = texts[lang].settings_disabled;
   }
 
-  let webhook_name, webhook_channel;
+  let webhook_name, webhook_channel, verifed_role, unverifed_role;
   if (guildData.logchannel) {
     const webhook = await get_webhook(guildData, interaction);
     if (webhook) {
@@ -71,6 +71,20 @@ export async function settingsHandler(interaction) {
   } else {
     webhook_name = webhook_channel = texts[lang].settings_nodata;
   }
+  if(guildData.verificationSystem?.verifedRoleId) {
+    const role = await interaction.guild.roles.fetch(guildData.verificationSystem?.verifedRoleId)
+    if(role) {
+      verifed_role = role;
+    }
+  }
+
+   if(guildData.verificationSystem?.unvefivedRoleID) {
+    const role = await interaction.guild.roles.fetch(guildData.verificationSystem?.unvefivedRoleID)
+    if(role) {
+      unverifed_role = role;
+    }
+  }
+
 
   return {
     webhook_name,
@@ -78,6 +92,9 @@ export async function settingsHandler(interaction) {
     userblocking,
     emoji_pack,
     role_names: await format_whitelist(interaction),
+    verifed_role,
+    unverifed_role
+
   };
 }
 
