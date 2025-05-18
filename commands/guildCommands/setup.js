@@ -2,10 +2,10 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 import {
   EmbedBuilder,
   MessageFlags,
-  Message,
-  ChannelType,
-  TextInputStyle,
 } from "discord.js";
+import {
+  encrypt
+} from "../../utils/crypting.js"
 import "moment-duration-format";
 import Guild from "../../Schemas/guildSchema.js";
 import {
@@ -14,8 +14,9 @@ import {
   colors,
 } from "../../utils/helper.js";
 import texts from "../../utils/texts.js";
+import Logger from "../../utils/logs.js";
+const lg = new Logger({ prefix: "Bot" });
 import { check_owner_permission } from "../../utils/settingsHandler.js";
-import { text } from "stream/consumers";
 
 export const data = new SlashCommandBuilder()
   .setName("setup")
@@ -30,7 +31,7 @@ export const data = new SlashCommandBuilder()
             .setName("webhook")
             .setDescription("Виберіть вебхук для логування")
             .setRequired(true)
-            .setAutocomplete(true), // Включає автодоповнення до setup вебхука
+            .setAutocomplete(true),
       ),
   )
   .addSubcommand((subcommand) =>
@@ -96,21 +97,21 @@ export const data = new SlashCommandBuilder()
 
 export async function autocomplete(interaction) {
   try {
-    const webhooks = await interaction.guild.fetchWebhooks(); // Отримуємо вебхуки
-    const focusedValue = interaction.options.getFocused(); // Отримуємо введене значення
+    const webhooks = await interaction.guild.fetchWebhooks();
+    const focusedValue = interaction.options.getFocused();
 
-    // Фільтруємо вебхуки на основі введеного значення
+
     const filtered = Array.from(webhooks.values())
       .filter((wh) =>
         wh.name.toLowerCase().startsWith(focusedValue.toLowerCase()),
       )
       .slice(0, 25);
 
-    // Формуємо масив для відповідей
+
     const choices = filtered.map((wh) => {
       return {
         name: wh.name,
-        value: wh.id, // Можемо зберегти ID вебхука
+        value: wh.id,
       };
     });
 
@@ -121,7 +122,7 @@ export async function autocomplete(interaction) {
 }
 
 export async function execute(interaction) {
-  const lang = await get_lang(interaction.client, interaction.guild.id);
+
   if (interaction.options.getSubcommand() === "log_channel") {
     const lang = await get_lang(interaction.client, interaction.guild.id);
 
@@ -130,9 +131,9 @@ export async function execute(interaction) {
     if (isOwner === true) {
       try {
         const guildData = await Guild.findOne({ _id: interaction.guild.id });
-        const webhookId = interaction.options.getString("webhook"); // Отримуємо webhook ID з опцій
+        const webhookId = interaction.options.getString("webhook");
         const webhooks = await interaction.guild.fetchWebhooks();
-        const webhook = webhooks.get(webhookId); // Отримуємо вебхук з мапи
+        const webhook = webhooks.get(webhookId);
 
         if (!webhook) {
           return await interaction.reply({
@@ -150,9 +151,10 @@ export async function execute(interaction) {
           return;
         }
 
+        const encrypted = encrypt(webhookUrl)
         await Guild.updateOne(
           { _id: interaction.guild.id },
-          { $set: { logchannel: webhookUrl } },
+          { $set: { logchannel: encrypted } },
         );
 
         const SuccessfullEmbed = new EmbedBuilder()
@@ -179,7 +181,7 @@ export async function execute(interaction) {
     const isOwner = await check_owner_permission(interaction);
     if (isOwner === true) {
       try {
-        const guildData = await Guild.findOne({ _id: interaction.guild.id });
+        let guildData = await Guild.findOne({ _id: interaction.guild.id });
 
         const SuccessfullEmbed = new EmbedBuilder()
           .setColor(0xaeffd8)
@@ -206,10 +208,10 @@ export async function execute(interaction) {
             embeds: [SuccessfullEmbed],
             flags: MessageFlags.Ephemeral,
           });
-        } else {
         }
       } catch (error) {
         await interaction.reply(texts[lang].main_error_message);
+        lg.error(error)
         return;
       }
     }
@@ -289,6 +291,7 @@ export async function execute(interaction) {
         });
       } catch (error) {
         await interaction.reply(texts[lang].main_error_message);
+        lg.error(error)
         return;
       }
     }
@@ -300,7 +303,7 @@ export async function execute(interaction) {
     if (isOwner === true) {
       try {
         const choice = interaction.options.getString("ban_users_option");
-        const guildData = await Guild.findOne({ _id: interaction.guild.id });
+        let guildData = await Guild.findOne({ _id: interaction.guild.id });
         const isChoiceTrue = choice === "true";
 
         if (!guildData) {
@@ -308,7 +311,7 @@ export async function execute(interaction) {
           await guildData.save();
         }
         if (guildData.blocking_enabled === isChoiceTrue) {
-          // Перевірка, чи було введено той самий параметр, який вже встановлений на сервері
+
           await interaction.reply(texts[lang].setup_banusers_isthesame);
           return;
         }
@@ -380,13 +383,13 @@ export async function execute(interaction) {
             texts[lang].setup_role_removed.replace("${role}", roleId),
           );
         if (!role) {
-          // Роль не знайдена, відправляємо повідомлення
+
           await interaction.reply({
             content: texts[lang].setup_role_not_found,
             flags: MessageFlags.Ephemeral,
           });
         } else {
-          // Роль знайдена, видаляємо її
+
           await Guild.updateOne(
             { _id: interaction.guild.id },
             { $pull: { whitelist: roleId } },
@@ -397,7 +400,7 @@ export async function execute(interaction) {
           });
         }
       } catch (error) {
-        console.error(error); // Логуємо помилку для відладки
+        console.error(error);
         await interaction.reply(texts[lang].main_error_message);
       }
     }

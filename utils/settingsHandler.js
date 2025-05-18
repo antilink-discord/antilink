@@ -2,12 +2,14 @@ import { get_lang } from "./helper.js";
 import texts from "./texts.js";
 import Guild from "../Schemas/guildSchema.js";
 import Logger from "./logs.js";
+import { decrypt } from "../utils/crypting.js"
 const lg = new Logger({ prefix: "Bot" });
 
 export async function get_webhook(guildData, interaction) {
   try {
     if (guildData.logchannel) {
-      const webhookId = guildData.logchannel.split("/")[5];
+      const dectypted = decrypt(guildData.logchannel)
+      const webhookId = dectypted.split("/")[5];
       const webhook = await interaction.client.fetchWebhook(webhookId);
       return webhook;
     } else {
