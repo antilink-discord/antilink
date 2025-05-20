@@ -12,15 +12,14 @@ export default {
     lg.info("Виклик івенту GuildMemberAdd");
     try {
       const guildData = await Guild.findOne({ _id: member.guild.id });
-      lg.debug(guildData);
-    if(guildData?.verificationSystem?.unvefivedRoleID && guildData?.verificationSystem?.captcha_embed_message_id) {
+      if (guildData.verificationSystem?.isEnabled === true){
         const role = await member.guild.roles.fetch(guildData.verificationSystem.unvefivedRoleID);
-        if(role) {
-            await member.roles.add(role).catch(error => {
-                lg.error(error);
-            });
+        if (role) {
+          await member.roles.add(role).catch(error => {
+            lg.error(error);
+          });
         }
-    }
+      }
     } catch (error) {
       lg.error("Помилка у GuildDelete:", error);
     }
