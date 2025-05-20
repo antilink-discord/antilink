@@ -1,5 +1,6 @@
 import Guild from "../Schemas/guildSchema.js";
 import Logger from "./logs.js";
+import texts from "./texts.js";
 
 const lg = new Logger({ prefix: "Bot" });
 
@@ -47,6 +48,27 @@ export async function clear_guild_language_cache(client, guildId) {
   }
 }
 
+export async function can_give_role(interaction) {
+  const botMember = await interaction.guild.members.fetch(interaction.client.user.id); 
+  const targetRole = interaction.options.getRole('role'); 
+  const hasPermissions = botMember.permissions.has('ManageRoles');
+  const canManage = botMember.roles.highest.comparePositionTo(targetRole) > 0;
+
+  const isNotSystemRole = targetRole.id !== interaction.guild.id;
+
+
+  if (!canManage || !isNotSystemRole || !hasPermissions) {
+  const lang = await get_lang(interaction.client, interaction.guild.id);
+  await interaction.reply({
+    content: `${texts[lang].setup_role_cant_setup_content}\n` +
+      `${!canManage ? texts[lang].setup_role_canManage : ''}\n` +
+      `${!isNotSystemRole ? texts[lang].setup_role_systemRole : ''}\n` +
+      `${!hasPermissions ? texts[lang].setup_no_perms : ''}`,
+    ephemeral: true
+  });
+  return;
+}
+}
 export const colors = {
   SUCCESSFUL_COLOR: "#86fa50",
   ERROR_COLOR: "#fa7850",

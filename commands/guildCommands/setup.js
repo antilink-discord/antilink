@@ -1,7 +1,12 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
+import { 
+  SlashCommandBuilder,
+  ButtonBuilder,
+  ActionRowBuilder,
+  } from "@discordjs/builders";
 import {
   EmbedBuilder,
   MessageFlags,
+  ButtonStyle
 } from "discord.js";
 import {
   encrypt
@@ -12,6 +17,7 @@ import {
   clear_guild_language_cache,
   get_lang,
   colors,
+  can_give_role
 } from "../../utils/helper.js";
 import texts from "../../utils/texts.js";
 import Logger from "../../utils/logs.js";
@@ -217,7 +223,7 @@ export async function execute(interaction) {
 
         if (!webhook) {
           return await interaction.reply({
-            content: "❌ Вебхук не знайдено!",
+            content: texts[lang].setup_webhook_not_found,
             ephemeral: true,
           });
         }
@@ -272,14 +278,14 @@ export async function execute(interaction) {
           });
         } else {
           let embed = new EmbedBuilder()
-            .setColor("#9400FF")
+            .setColor("#4248fc")
             .setAuthor({
               name: texts[lang].verification_embed_author, iconURL: interaction.guild.iconURL(),
             })
             .setTitle(texts[lang].verification_title)
             .setDescription(texts[lang].verification_description)
             .setFooter({
-              text: "Powered by AntiLink",
+              text: "powered by AntiLink",
             });
 
           const guildData = await Guild.findOne({ _id: interaction.guild.id});
@@ -298,20 +304,20 @@ export async function execute(interaction) {
               .setCustomId("verifyBtn")
               .setLabel("✔️ Verify")
               .setStyle(ButtonStyle.Success)
-              )
+              );
             }
          
           if(guildData?.verificationSystem?.captcha_channel_id && guildData?.verificationSystem?.captcha_embed_message_id) {
             const verificationChannel = await interaction.guild.channels.fetch(guildData.verificationSystem.captcha_channel_id);
-            console.log(verificationChannel)
+            console.log(verificationChannel);
             const message = await verificationChannel.messages.fetch(guildData.verificationSystem.captcha_embed_message_id).catch(e => {
               lg.error(e);
-              return
+              return;
             });
             if(message) {
               await message.delete().catch(error => {
-                lg.error(error)
-              }) 
+                lg.error(error);
+              });
             }
             
             
@@ -348,10 +354,10 @@ export async function execute(interaction) {
             }),
 
             interaction.editReply({
-              content: `Система верифікації призначена в ${verifyChannel}.`,
-              ephemeral: true,
+              content: texts[lang].setup_verificationchannel_setuped.replace("${verifyChannel}", verifyChannel),
+              flags: MessageFlags.Ephemeral
             })
-          ])
+          ]);
         }
       } catch (error) {
         await interaction.editReply(texts[lang].main_error_message);
@@ -374,8 +380,23 @@ export async function execute(interaction) {
           guildData = new Guild({ _id: interaction.guild.id });
           await guildData.save();
         }
+        
+        if(!guildData.verificationSystem.captcha_embed_message_id)  {
+          await interaction.reply({ content: texts[lang].setup_verificationchannel_not_found, flags: MessageFlags.Ephemeral});
+          return;
+        };
+        if(!guildData.verificationSystem.unvefivedRoleID) {
+          await interaction.reply({ content: texts[lang].setup_unverifedrole_not_found, flags: MessageFlags.Ephemeral });
+          return;
+          }
+
+        if(!guildData.verificationSystem.verifedRoleId) {
+          await interaction.reply({ content: texts[lang].setup_verifedrole_not_found, flags: MessageFlags.Ephemeral });
+          return;
+          }
+
         if (guildData.verificationSystem.isEnabled === isChoiceTrue) {
-          await interaction.reply(texts[lang].setup_banusers_isthesame);
+          await interaction.reply({ content: texts[lang].setup_banusers_isthesame, flags: MessageFlags.Ephemeral});
           return;
         }
         if (choice === "true") {
@@ -388,14 +409,14 @@ export async function execute(interaction) {
             const newButton = new ButtonBuilder()
               .setCustomId("verifyBtn")
               .setLabel("✔️ Verify")
-              .setStyle(ButtonStyle.Success)
+              .setStyle(ButtonStyle.Success);
 
             const row = new ActionRowBuilder().addComponents(newButton);
-            const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e))
+            const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e));
 
             await messageChannel.messages.fetch(guildData?.verificationSystem.captcha_embed_message_id)
               .then(messageToEdit => messageToEdit.edit({ components: [row] }))
-              .catch(error => console.error('Помилка при редагуванні повідомлення:', error));
+              .catch(error => lg.error('Помилка при редагуванні повідомлення:', error));
 
             const SuccessfullEmbed = new EmbedBuilder()
               .setColor(colors.SUCCESSFUL_COLOR)
@@ -422,10 +443,10 @@ export async function execute(interaction) {
               .setCustomId("verifyBtn")
               .setLabel("❌Disabled")
               .setStyle(ButtonStyle.Danger)
-              .setDisabled(true)
+              .setDisabled(true);
             const row = new ActionRowBuilder().addComponents(newButton);
-            const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e))
-            lg.debug(messageChannel)
+            const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e));
+            lg.debug(messageChannel);
             await messageChannel.messages.fetch(guildData?.verificationSystem.captcha_embed_message_id)
               .then(messageToEdit => messageToEdit.edit({ components: [row] }))
               .catch(error => console.error('Помилка при редагуванні повідомлення:', error));
@@ -526,7 +547,9 @@ export async function execute(interaction) {
         });
       }
     } catch (error) {
-      await interaction.reply(texts[lang].main_error_message);
+      if (!interaction.replied) {
+        await interaction.lreply(texts[lang].main_error_message);
+      }
       lg.error("setup_whitelist error" + error);
       return;
     }
@@ -536,7 +559,8 @@ export async function execute(interaction) {
     const lang = await get_lang(interaction.client, interaction.guild.id);
     try {
       const role = interaction.options.getRole("role");
-
+      await can_give_role(interaction);
+      
       let guildData = await Guild.findOne({ _id: interaction.guild.id });
       if (!guildData) {
         guildData = new Guild({ _id: interaction.guild.id });
@@ -565,7 +589,9 @@ export async function execute(interaction) {
         });
       }
     } catch (error) {
-      await interaction.reply(texts[lang].main_error_message);
+      if (!interaction.replied) {
+        await interaction.reply(texts[lang].main_error_message);
+      }
       lg.error("verifedRoleId error" + error);
       return;
     }
@@ -575,7 +601,8 @@ export async function execute(interaction) {
     const lang = await get_lang(interaction.client, interaction.guild.id);
     try {
       const role = interaction.options.getRole("role");
-
+      await can_give_role(interaction);
+      
       let guildData = await Guild.findOne({ _id: interaction.guild.id });
       if (!guildData) {
         guildData = new Guild({ _id: interaction.guild.id });
@@ -648,7 +675,7 @@ export async function execute(interaction) {
       } catch (error) {
         lg.error(error);
         await interaction.reply(texts[lang].main_error_message);
-        lg.error(error);
+        
         return;
       }
     }

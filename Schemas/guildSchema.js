@@ -36,7 +36,7 @@ const guildSchema = new mongoose.Schema(
       },
       isEnabled: {
         type: Boolean,
-        default: true,
+        default: false,
       },
       verifedRoleId: {
         type: String,

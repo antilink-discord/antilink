@@ -7,6 +7,7 @@ import {
   Events,
 } from "discord.js";
 import {
+  colors,
   get_lang,
 } from "../utils/helper.js";
 import {
@@ -25,8 +26,6 @@ import texts from "../utils/texts.js";
 
 
 dotenv.config();
-const VERIFICATION_ROLE_ID = process.env.VERIFICATION_ROLE_ID;
-const UNVERIFED_ROLE_ID = process.env.UNVERIFED_ROLE_ID;
 const CAPTCHA_STORAGE = new Map();
 
 const generateCaptchaImage = () => {
@@ -51,11 +50,12 @@ export default {
     try {
       const lang = await get_lang(interaction.client, interaction.guild.id);
       let guildData = await Guild.findOne({ _id: interaction.guild.id });
-
+      
       if (interaction.isButton()) {
         if (interaction.customId === "verifyBtn") {
-          const verifyRole = await interaction.guild.roles.fetch(guildData?.verificationSystem.verifedRoleId);
-
+          if(!guildData.verificationSystem?.verifedRoleId) return 0;
+          const verifyRole = await interaction.guild.roles.fetch(guildData?.verificationSystem?.verifedRoleId);
+          
           if (interaction.member.roles.cache.has(verifyRole.id) || interaction.user.id === interaction.guild.ownerId) {
             return interaction.reply({
               embeds: [
@@ -138,16 +138,16 @@ export default {
           if (response === correctAnswer) {
             captchaMessage = new EmbedBuilder()
               .setColor("#ffffff")
-              .setTitle("🎉 Ви успішно пройшли верифікацію!")
-              .setDescription("Тепер ви маєте доступ до серверу!");
+              .setTitle(texts[lang].verification_successful_title)
+              .setDescription(texts[lang].verification_successful_description);
 
               
             const [verifyRole, unverifedRole] = await Promise.all([
-              interaction.guild.roles.fetch(VERIFICATION_ROLE_ID),
-              interaction.guild.roles.fetch(UNVERIFED_ROLE_ID)
+              interaction.guild.roles.fetch(guildData?.verificationSystem?.verifedRoleId),
+              interaction.guild.roles.fetch(guildData?.verificationSystem.unvefivedRoleID)
             ]).catch(error => {
-              lg.error(error)
-            })
+              lg.error(error);
+            });
   
 
             if (unverifedRole) {
@@ -157,24 +157,25 @@ export default {
             }
 
             if (verifyRole) {
+              
               await interaction.member.roles
                 .add(verifyRole)
-                .catch((e) => lg.error(e));
+                .catch((e) => lg.error('Виникла помилка при спробі видати роль:', e));
             }
 
             CAPTCHA_STORAGE.delete(interaction.user.id);
 
-            await user_solved_captcha(interaction.user, interaction.guild, correctAnswer, response)
+            await user_solved_captcha(interaction.user, interaction.guild, correctAnswer, response);
             await interaction.reply({
               embeds: [captchaMessage],
               ephemeral: true,
             });
           } else {
             captchaMessage = new EmbedBuilder()
-              .setColor("#ff0000")
-              .setTitle(`💀 Ви провалили верифікацію`)
+              .setColor(colors.ERROR_COLOR)
+              .setTitle(texts[lang].verification_failed_title)
               .setDescription(
-                "Ви ввели неправильну капчу... Будь ласка, спробуйте ще раз.",
+                texts[lang].verification_failed_description,
               );
 
             await Promise.all([
