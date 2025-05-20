@@ -15,7 +15,8 @@ const lg = new Logger({ prefix: "Bot" });
 export const cooldown = 120;
 export const data = new SlashCommandBuilder()
   .setName("bug")
-  .setDescription("Відправляє знайдений вами баг розробнику");
+  .setDescription("Відправляє знайдений вами баг розробнику")
+  .setDescriptionLocalizations({ EnglishUS: 'Send the bug to bot developer' });
 
 export async function execute(interaction) {
   try {

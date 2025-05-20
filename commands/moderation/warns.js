@@ -9,10 +9,18 @@ const lg = new Logger({ prefix: "Bot" });
 export const data = new SlashCommandBuilder()
   .setName("warns")
   .setDescription("Команда для перевірки попереджень користувача")
+  .setDescriptionLocalizations({
+    "en-US": 'Check warnings of specified user',
+    "en-GB": 'Check warnings of specified user'
+  })
   .addStringOption((option) =>
     option
       .setName("user_id")
-      .setDescription("ID користувача для перевірки")
+      .setDescription("ID користувача якого попередження хочете перевірити")
+      .setDescriptionLocalizations({
+        "en-US": 'User id which warnings you want to check',
+        "en-GB": 'User id which warnings you want to check'
+      })
       .setRequired(true),
   );
 

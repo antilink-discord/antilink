@@ -47,7 +47,7 @@ const guildSchema = new mongoose.Schema(
     }, 
   },
   { collection: "collguilds" },
-);
+); 
 
 const Guild = mongoose.model("Guild", guildSchema);
 
