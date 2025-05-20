@@ -17,6 +17,9 @@ export default {
     dashboard_button: "Панель",
 
     setup_successful: "Успішно!",
+    setup_role_already_setup: "**❌ Ця роль вже призначена**",
+    setup_verifedrole_setuped: "Призначено роль ${role} для верифікованих користувачів",
+    setup_unverifedrole_setuped: "Призначено роль ${role} для користувачів, які входять на гільдію",
     setup_role_cant_setup_content: "**❌ Я не можу керувати цією роллю.**",
     setup_role_canManage: "• Моя найвища роль нижча за вказану.",
     setup_role_systemRole: "• Це системна роль (@everyone або інтегрована).",
@@ -107,7 +110,7 @@ export default {
   },
   en: {
     main_error_message: "**❌An error occurred while executing your command.**",
-    no_perms: "**❌You do not have permission to use this command**",
+    no_perms: "**❌ You do not have permission to use this command**",
     test: "⚙️Bot Statistics",
     ping_field1: "Bot ping:",
     ping_field2: "Uptime",
@@ -121,6 +124,9 @@ export default {
     warns_reason: "Reason:",
 
     setup_successful: "Successful!",
+    setup_role_already_setup: "**❌ This role is already setup.**",
+    setup_verifedrole_setuped: "Assigned ${role} role for verified users",
+    setup_unverifedrole_setuped: "Assigned ${role} role for new server members",
     setup_role_cant_setup_content: "**❌ I can't manage this role.**",
     setup_role_canManage: "• My highest role is lower than the specified one.",
     setup_role_systemRole: "• This is a system role (@everyone or built-in).",

@@ -265,7 +265,6 @@ export async function execute(interaction) {
   if (interaction.options.getSubcommand() === "captcha_channel") {
     const lang = await get_lang(interaction.client, interaction.guild.id);
     const isOwner = await check_owner_permission(interaction);
-
     if (isOwner === true) {
       try {
         await interaction.deferReply({ ephemeral: true});
@@ -286,6 +285,7 @@ export async function execute(interaction) {
             .setDescription(texts[lang].verification_description)
             .setFooter({
               text: "powered by AntiLink",
+              iconURL: interaction.client.user.avatarURL()
             });
 
           const guildData = await Guild.findOne({ _id: interaction.guild.id});
@@ -576,7 +576,7 @@ export async function execute(interaction) {
           )
           .setTitle(texts[lang].setup_successful)
           .setDescription(
-            texts[lang].setup_whitelist_changed.replace("${role}", role),
+            texts[lang].setup_verifedrole_setuped.replace("${role}", role),
           );
         await interaction.reply({
           embeds: [SuccessfullEmbed],
@@ -584,7 +584,7 @@ export async function execute(interaction) {
         });
       } else {
         await interaction.reply({
-          content: texts[lang].setup_whitelist_already_is,
+          content: texts[lang].setup_role_already_setup,
           flags: MessageFlags.Ephemeral,
         });
       }
@@ -618,7 +618,7 @@ export async function execute(interaction) {
           )
           .setTitle(texts[lang].setup_successful)
           .setDescription(
-            texts[lang].setup_whitelist_changed.replace("${role}", role),
+            texts[lang].setup_unverifedrole_setuped.replace("${role}", role),
           );
         await interaction.reply({
           embeds: [SuccessfullEmbed],
@@ -626,7 +626,7 @@ export async function execute(interaction) {
         });
       } else {
         await interaction.reply({
-          content: texts[lang].setup_whitelist_already_is,
+          content: texts[lang].setup_role_already_setup,
           flags: MessageFlags.Ephemeral,
         });
       }
