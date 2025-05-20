@@ -1,6 +1,6 @@
 import 'dotenv/config';
 import { SlashCommandBuilder } from "discord.js";
-import { shardManager } from '../../shardManager.js'; 
+import { manager } from '../../shardManager.js';
 
 export const data = new SlashCommandBuilder()
     .setName('shards')
@@ -12,13 +12,13 @@ export async function execute(interaction) {
     }
 
     try {
-        if (!shardManager) {
+        if (!manager) {
             return await interaction.reply('Менеджер шардів не ініціалізований.');
         }
 
         const statusMessages = [];
-        
-        for (const shard of shardManager.shards.values()) {
+
+        for (const shard of manager.shards.values()) {
             const status = shard.ready ? '🟢 Онлайн' : '🔴 Оффлайн';
             const guilds = await shard.fetchClientValue('guilds.cache.size');
             statusMessages.push(`Шард ${shard.id}: ${status} | Серверів: ${guilds}`);

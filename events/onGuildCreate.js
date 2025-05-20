@@ -10,7 +10,6 @@ export default {
   name: Events.GuildCreate,
   once: false,
   async execute(guild) {
-    lg.info("Виклик івенту GuildCreate");
     try {
       const client = guild.client;
       let guildData = await Guild.findOne({ _id: guild.id });

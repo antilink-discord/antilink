@@ -9,7 +9,8 @@ const lg = new Logger({ prefix: "Bot" });
 
 export const data = new SlashCommandBuilder()
   .setName("help")
-  .setDescription("Показує список доступних команд в боті");
+  .setDescription("Показує список доступних команд в боті")
+  .setDescriptionLocalizations({ EnglishUS: 'Shows bot command list' });
 
 export async function execute(interaction) {
   try {

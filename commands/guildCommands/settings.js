@@ -13,7 +13,8 @@ const lg = new Logger({ prefix: "Bot" });
 
 export const data = new SlashCommandBuilder()
   .setName("settings")
-  .setDescription("Відкриває налаштування вашої гільдії");
+  .setDescription("Відкриває налаштування вашої гільдії")
+  .setDescriptionLocalizations({ EnglishUS: `Open your guild's settings` });
 
 export async function execute(interaction) {
   try {

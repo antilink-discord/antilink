@@ -5,7 +5,7 @@ import {
 } from "discord.js";
 import {
   encrypt
-} from "../../utils/crypting.js"
+} from "../../utils/crypting.js";
 import "moment-duration-format";
 import Guild from "../../Schemas/guildSchema.js";
 import {
@@ -21,15 +21,24 @@ import { check_owner_permission } from "../../utils/settingsHandler.js";
 export const data = new SlashCommandBuilder()
   .setName("setup")
   .setDescription("Змінює налаштування певного параметру у вашій гільдії")
+  .setDescriptionLocalizations({ "en-US": 'Change any setting parameter in your guild' })
   .addSubcommand((subcommand) =>
     subcommand
       .setName("log_channel")
       .setDescription("Призначити канал логів на вашій гільдії")
+      .setDescriptionLocalizations({
+        "en-US": 'Setup webhook for logs',
+        "en-GB": 'Setup webhook for logs'
+      })
       .addStringOption(
         (option) =>
           option
             .setName("webhook")
             .setDescription("Виберіть вебхук для логування")
+            .setDescriptionLocalizations({
+              "en-US": 'Choose webhook for setup',
+              "en-GB": 'Choose webhook for setup'
+            })
             .setRequired(true)
             .setAutocomplete(true),
       ),
@@ -38,10 +47,15 @@ export const data = new SlashCommandBuilder()
     subcommand
       .setName("whitelist")
       .setDescription("Додає вказану роль в білий список")
+      .setDescriptionLocalizations({
+        "en-US": 'Add the role to the whitelist',
+        'en-GB': 'Add the role to the whitelist'
+      })
       .addRoleOption((option) =>
         option
           .setName("role")
           .setDescription("Вибрана роль буде додана в білий список")
+          .setDescriptionLocalizations({ "en-US": 'This role will be added to the whitelist' })
           .setRequired(true),
       ),
   )
@@ -51,25 +65,37 @@ export const data = new SlashCommandBuilder()
       .setDescription(
         "Вмикає на сервері функцію блокування користувачів та запрошень",
       )
+      .setDescriptionLocalizations({ "en-US": 'Enable or disable users and invites blocking' })
       .addStringOption((option) =>
         option
           .setName("ban_users_option")
           .setDescription("Виберіть параметр")
           .setRequired(true)
           .addChoices(
-            { name: "увімкнути", value: "true" },
-            { name: "вимкнути", value: "false" },
-          ),
+            {
+              name: "увімкнути",
+              name_localizations: { "en-US": "enable" },
+              value: "true",
+            },
+            {
+              name: "вимкнути",
+              name_localizations: { "en-US": "disable" },
+              value: "false",
+            }
+          )
+
       ),
   )
   .addSubcommand((subcommand) =>
     subcommand
       .setName("language")
       .setDescription("Змінює мову на вашій гільдії")
+      .setDescriptionLocalizations({ "en-US": 'Change bot language in your guild' })
       .addStringOption((option) =>
         option
           .setName("set_language_option")
           .setDescription("Виберіть параметр")
+          .setDescriptionLocalizations({ "en-US": 'Choose parameter' })
           .setRequired(true)
           .addChoices(
             { name: "українська", value: "uk" },
@@ -80,17 +106,20 @@ export const data = new SlashCommandBuilder()
   .addSubcommand((subcommand) =>
     subcommand
       .setName("logchannel_delete")
-      .setDescription("Видаляє канал логів на вашій гільдії"),
+      .setDescription("Видаляє канал логів на вашій гільдії")
+      .setDescriptionLocalizations({ "en-US": 'Removes the logchannel in your guild' }),
   )
 
   .addSubcommand((subcommand) =>
     subcommand
       .setName("whitelist_remove")
       .setDescription("Видаляє вказану роль з білого списку")
+      .setDescriptionLocalizations({ "en-US": "Removes the role from whitelist" })
       .addRoleOption((option) =>
         option
           .setName("role")
           .setDescription("Вибрана роль буде видалена з білого списку")
+          .setDescriptionLocalizations({ "en-US": 'Choose which role will be removed from whitelist' })
           .setRequired(true),
       ),
   );
@@ -151,7 +180,7 @@ export async function execute(interaction) {
           return;
         }
 
-        const encrypted = encrypt(webhookUrl)
+        const encrypted = encrypt(webhookUrl);
         await Guild.updateOne(
           { _id: interaction.guild.id },
           { $set: { logchannel: encrypted } },
@@ -211,7 +240,7 @@ export async function execute(interaction) {
         }
       } catch (error) {
         await interaction.reply(texts[lang].main_error_message);
-        lg.error(error)
+        lg.error(error);
         return;
       }
     }
@@ -291,7 +320,7 @@ export async function execute(interaction) {
         });
       } catch (error) {
         await interaction.reply(texts[lang].main_error_message);
-        lg.error(error)
+        lg.error(error);
         return;
       }
     }

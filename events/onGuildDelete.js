@@ -10,7 +10,6 @@ export default {
   once: false,
 
   async execute(guild) {
-    lg.info("Виклик івенту guildDelete");
     try {
       const guildData = await Guild.findOne({ _id: guild.id });
       await sendLeaveLogs(guild);

@@ -29,7 +29,7 @@ const guildSchema = new mongoose.Schema(
     },
   },
   { collection: "collguilds" },
-); // Вказуємо колекцію вручну
+); 
 
 const Guild = mongoose.model("Guild", guildSchema);
 

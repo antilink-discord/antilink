@@ -12,5 +12,8 @@ export default defineConfig([
         ...globals.node,
       },
     },
+    rules: {
+      semi: ["error", "always"], 
+    },
   },
 ]);

@@ -8,7 +8,11 @@ const lg = new Logger({ prefix: "Bot" });
 
 export const data = new SlashCommandBuilder()
   .setName("ping")
-  .setDescription("Replies with Pong!");
+  .setDescription("Переглянути статистику бота")
+  .setDescriptionLocalizations({
+    "en-US": 'Check bot statistic',
+    "en-GB": 'Check bot statistic'
+  });
 
 export async function execute(interaction) {
   try {
