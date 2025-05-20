@@ -49,7 +49,8 @@ export async function get_emojis_for_message(support_server) {
       verifed_member_emoji
     };
   } catch (error) {
-    lg.error("Не вдалось отримати емодзі get_emoji_for_message: " + error);
+    console.error("Не вдалось отримати емодзі get_emoji_for_message: ", error);
+    return {}; 
   }
 }
 

@@ -1,7 +1,6 @@
 import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders";
 import {
   EmbedBuilder,
-  MessageFlags,
   ButtonBuilder,
   ButtonStyle,
 } from "discord.js";
@@ -18,8 +17,9 @@ export const data = new SlashCommandBuilder()
 
 export async function execute(interaction) {
   try {
+    await interaction.deferReply({ ephemeral: true });
     const lang = await get_lang(interaction.client, interaction.guild.id);
-
+    
     if (interaction.guild.ownerId === interaction.member.id) {
       const {
         webhook_name,
@@ -27,8 +27,10 @@ export async function execute(interaction) {
         userblocking,
         role_names,
         emoji_pack,
+        verifed_role,
+        unverifed_role
       } = await settingsHandler(interaction);
-
+      
       const linkButton = new ButtonBuilder()
         .setURL("https://antilink.pp.ua/")
         .setLabel(texts[lang].dashboard_button)
@@ -52,26 +54,36 @@ export async function execute(interaction) {
           {
             name: `${emoji_pack.whitelist_emoji}${texts[lang].settings_whitelist}`,
             value:
-              role_names.join(", ") || `${texts[lang].settings_didnt_setup}`,
+              role_names.join(", ") ?? `${texts[lang].settings_didnt_setup}`,
             inline: true,
           },
           {
-            name: `${texts[lang].settings_blocking}`,
+            name: `${emoji_pack.hammer_emoji}${texts[lang].settings_blocking}`,
             value: userblocking,
             inline: false,
+          },
+          {
+            name: `${emoji_pack.new_member_emoji}${texts[lang].settings_joinrole_title}`,
+            value: unverifed_role ? `<@&${unverifed_role}>` : `${texts[lang].settings_didnt_setup}`,
+            inline: true,
+          },
+               {
+            name: `${emoji_pack.verifed_member_emoji}${texts[lang].settings_verifedrole_title}`,
+            value: verifed_role ? `<@&${verifed_role}>` : `${texts[lang].settings_didnt_setup}`,
+            inline: true,
           },
         )
         .setFooter({ text: texts[lang].settings_footer });
 
-      await interaction.reply({
+      await interaction.editReply({
         embeds: [ExampleEmbed],
-        flags: MessageFlags.Ephemeral,
         components: [row],
+        ephemeral: true
       });
     } else {
-      await interaction.reply({
+      await interaction.editReply({
         content: `${texts[lang].no_perms}`,
-        flags: MessageFlags.Ephemeral,
+        ephemeral: true
       });
 
       return;

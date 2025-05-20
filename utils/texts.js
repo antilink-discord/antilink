@@ -17,6 +17,18 @@ export default {
     dashboard_button: "Панель",
 
     setup_successful: "Успішно!",
+    setup_role_already_setup: "**❌ Ця роль вже призначена**",
+    setup_verifedrole_setuped: "Призначено роль ${role} для верифікованих користувачів",
+    setup_unverifedrole_setuped: "Призначено роль ${role} для користувачів, які входять на гільдію",
+    setup_role_cant_setup_content: "**❌ Я не можу керувати цією роллю.**",
+    setup_role_canManage: "• Моя найвища роль нижча за вказану.",
+    setup_role_systemRole: "• Це системна роль (@everyone або інтегрована).",
+    setup_no_perms: "• У мене немає прав Керувати Ролями.",
+    setup_unverifedrole_not_found: "**❌ Призначте роль не верифікованого користувача перед використанням цієї команди!**",
+    setup_verifedrole_not_found: "**❌ Призначте роль верифікованого користувача перед використанням цієї команди!**",
+    setup_verificationchannel_not_found: "**❌ Призначте канал верифікації перед використанням цієї команди!**",
+    setup_webhook_not_found: "❌ Вебхук не знайдено!",
+    setup_verificationchannel_setuped: "Система верифікації призначена в ${verifyChannel}.",
     setup_role_removed:
       "Роль <@&${role}> була успішно видалена з білого списку!",
     setup_role_not_found: "**❌Не вдалось знайти вказану Вами роль!**",
@@ -43,6 +55,9 @@ export default {
     settings_didnt_setup: "не призначено",
     settings_footer: "Напишіть /setup для зміни налаштувань",
 
+    settings_joinrole_title: "Роль при приєднанні",
+    settings_verifedrole_title: "Роль після верифікації",
+
     dm_title: "Блокування",
     dm_description: "Ви були заблоковані на гільдії **${guild_name}**.",
     dm_reason: "чорний список",
@@ -54,6 +69,10 @@ export default {
       "Користувач мав 3 попередження - та був заблокований.",
     guild_logs_field_user: "Користувач:",
     guild_logs_field_channel: "Канал",
+    guild_logs_member_solved_captcha_title: "Користувач успішно виконав капчу",
+    guild_logs_member_failed_captcha_title: "Користувач провалив капчу",
+    guild_logs_sent_captcha: "Згенерована капча:",
+    guild_logs_got_answer: "Отримана відповідь",
     reason_three_warnings: "3/3 попередження",
 
     banned_link: "Блокування запрошення",
@@ -73,10 +92,25 @@ export default {
 
     bug_succeffsull:
       "Ви успішно відправили знайдену помилку. Дякую за підтримку!",
+    
+    verification_successful_title: "🎉 Ви успішно пройшли верифікацію!",
+    verification_successful_description: "Тепер ви можете спілкуватись на цьому сервері!",
+
+    verification_failed_title: "💀 Ви провалили верифікацію",
+    verification_failed_description: "Ви ввели неправильну капчу... Будь ласка, спробуйте ще раз.",
+    verification_embed_author: "Перевірка на робота",
+    verification_title: "Ласкаво просимо!",
+    verification_description: "Цей сервер вимагає верифікацію перед тим як надати доступ до нього.\nПеред тим, як Ви отримаєте доступ до серверу - ви повинні пройти верифікацію",
+    verification_already_verifed: "Ви вже верифіковані",
+
+    verification_answer_description: "Будь ласка, натисніть кнопку **Ввести** нижче і введіть код капчі.`",
+    verification_answer_footer: "У вас є 60 секунд, щоб завершити капчу",
+    verification_put_captcha: "Введіть капчу",
+    verification_old_captchd: "Капча застарала. Будь ласка, спробуйте знову."
   },
   en: {
     main_error_message: "**❌An error occurred while executing your command.**",
-    no_perms: "**❌You do not have permission to use this command**",
+    no_perms: "**❌ You do not have permission to use this command**",
     test: "⚙️Bot Statistics",
     ping_field1: "Bot ping:",
     ping_field2: "Uptime",
@@ -90,6 +124,18 @@ export default {
     warns_reason: "Reason:",
 
     setup_successful: "Successful!",
+    setup_role_already_setup: "**❌ This role is already setup.**",
+    setup_verifedrole_setuped: "Assigned ${role} role for verified users",
+    setup_unverifedrole_setuped: "Assigned ${role} role for new server members",
+    setup_role_cant_setup_content: "**❌ I can't manage this role.**",
+    setup_role_canManage: "• My highest role is lower than the specified one.",
+    setup_role_systemRole: "• This is a system role (@everyone or built-in).",
+    setup_no_perms: "• I do not have the Manage Roles permission.",
+    setup_unverifedrole_not_found: "**❌ You must to setup join role before use this command!**",
+    setup_verifedrole_not_found: "**❌ You must to setup verified role before use this command!**",
+    setup_verificationchannel_not_found: "❌ You must to setup captcha channel before use this command!",
+    setup_webhook_not_found: "**❌ Webhook not found!**",
+    setup_verificationchannel_setuped: "Captcha channel has been setup to ${verifyChannel}.",
     setup_role_removed: "Role <@&${role}> has been removed from whitelist!",
     setup_role_not_found: "**❌Failed to find role!**",
     setup_logchannel_changed: "Webhook logs have been successfully changed!",
@@ -119,6 +165,8 @@ export default {
     settings_didnt_setup: "not assigned",
     settings_footer: "Use /setup to change settings",
 
+    settings_joinrole_title: "Join role",
+    settings_verifedrole_title: "Role after verification",
     dashboard_button: "Dashboard",
 
     dm_title: "Blocking",
@@ -131,6 +179,10 @@ export default {
       "A user has 3 warnings - and was banned.",
     guild_logs_field_user: "User:",
     guild_logs_field_channel: "Channel",
+    guild_logs_member_solved_captcha_title: "User successful solved the captcha",
+    guild_logs_member_failed_captcha_title: "User failed the captcha",
+    guild_logs_sent_captcha: "Generated captcha:",
+    guild_logs_got_answer: "User responce",
     reason_three_warnings: "3/3 warnings",
 
     banned_link: "Invite Blocking",
@@ -151,5 +203,19 @@ export default {
 
     bug_succeffsull:
       "The bug has been sent successfully. Thank you for support!",
+
+    verification_successful_title: "🎉 You have successfully passed verification!",
+    verification_successful_description: "Now you can chat on this server!",
+
+    verification_failed_title: "💀 You failed verification",
+    verification_failed_description: "You entered an incorrect captcha... Please try again.",
+
+    verification_embed_author: "Verify that you're not a robot",
+    verification_title: "Welcome!",
+    verification_description: "This server requires verification before access is granted.\nBefore you will get member role - please, complete captcha.",
+    verification_already_verifed: "You're already verified.",
+    verification_put_captcha: "Write the captcha code",
+    verification_answer_description: "Please click the **Enter** button below and enter the captcha code.`",
+    verification_answer_footer: "You have 60 seconds to solve the captcha.",
   },
 };

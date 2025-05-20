@@ -27,6 +27,24 @@ const guildSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    verificationSystem: {
+      captcha_channel_id: {
+        type: String,
+      },
+      captcha_embed_message_id: {
+        type: String,
+      },
+      isEnabled: {
+        type: Boolean,
+        default: false,
+      },
+      verifedRoleId: {
+        type: String,
+      },
+      unvefivedRoleID: {
+        type: String,
+      },
+    }, 
   },
   { collection: "collguilds" },
 ); 
