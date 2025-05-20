@@ -2,13 +2,13 @@ import { get_lang } from "./helper.js";
 import texts from "./texts.js";
 import Guild from "../Schemas/guildSchema.js";
 import Logger from "./logs.js";
-import { decrypt } from "../utils/crypting.js"
+import { decrypt } from "../utils/crypting.js";
 const lg = new Logger({ prefix: "Bot" });
 
 export async function get_webhook(guildData, interaction) {
   try {
     if (guildData.logchannel) {
-      const dectypted = decrypt(guildData.logchannel)
+      const dectypted = decrypt(guildData.logchannel);
       const webhookId = dectypted.split("/")[5];
       const webhook = await interaction.client.fetchWebhook(webhookId);
       return webhook;
@@ -21,19 +21,33 @@ export async function get_webhook(guildData, interaction) {
 }
 export async function get_emojis_for_message(support_server) {
   try {
-    const emoji_pack = {
-      settings_emoji: await support_server.emojis.cache.get(
-        "1266082934872604745",
-      ),
-      logs_channel_emoji: await support_server.emojis.cache.get(
-        "1266073334030926008",
-      ),
-      whitelist_emoji: await support_server.emojis.cache.get(
-        "1266073332152008704",
-      ),
-      error_emoji: await support_server.emojis.cache.get("1338880092633567303"),
+    const [
+      settings_emoji,
+      logs_channel_emoji,
+      whitelist_emoji,
+      error_emoji,
+      hammer_emoji,
+      new_member_emoji,
+      verifed_member_emoji
+    ] = await Promise.all([
+      support_server.emojis.cache.get("1266082934872604745"),
+      support_server.emojis.cache.get("1266073334030926008"),
+      support_server.emojis.cache.get("1266073332152008704"),
+      support_server.emojis.cache.get("1338880092633567303"),
+      support_server.emojis.cache.get("1374387659513794580"),
+      support_server.emojis.cache.get("1374389088366362806"),
+      support_server.emojis.cache.get("1374391371947053138")
+    ]);
+
+    return {
+      settings_emoji,
+      logs_channel_emoji,
+      whitelist_emoji,
+      error_emoji,
+      hammer_emoji,
+      new_member_emoji,
+      verifed_member_emoji
     };
-    return emoji_pack;
   } catch (error) {
     lg.error("Не вдалось отримати емодзі get_emoji_for_message: " + error);
   }
@@ -63,7 +77,7 @@ export async function settingsHandler(interaction) {
     userblocking = texts[lang].settings_disabled;
   }
 
-  let webhook_name, webhook_channel;
+  let webhook_name, webhook_channel, verifed_role, unverifed_role;
   if (guildData.logchannel) {
     const webhook = await get_webhook(guildData, interaction);
     if (webhook) {
@@ -73,6 +87,20 @@ export async function settingsHandler(interaction) {
   } else {
     webhook_name = webhook_channel = texts[lang].settings_nodata;
   }
+  if(guildData.verificationSystem?.verifedRoleId) {
+    const role = await interaction.guild.roles.fetch(guildData.verificationSystem.verifedRoleId);
+    if(role) {
+      verifed_role = role.id;
+    } else return null;
+  }
+
+   if(guildData.verificationSystem?.unvefivedRoleID) {
+    const role = await interaction.guild.roles.fetch(guildData.verificationSystem.unvefivedRoleID);
+    if(role) {
+      unverifed_role = role.id;
+    } else return null;
+  }
+
 
   return {
     webhook_name,
@@ -80,6 +108,9 @@ export async function settingsHandler(interaction) {
     userblocking,
     emoji_pack,
     role_names: await format_whitelist(interaction),
+    verifed_role,
+    unverifed_role
+
   };
 }
 
