@@ -53,7 +53,7 @@ export default {
       
       if (interaction.isButton()) {
         if (interaction.customId === "verifyBtn") {
-          if(!guildData.verificationSystem?.verifedRoleId) return 0;
+          if(!guildData?.verificationSystem?.verifedRoleId) return 0;
           const verifyRole = await interaction.guild.roles.fetch(guildData?.verificationSystem?.verifedRoleId);
           
           if (interaction.member.roles.cache.has(verifyRole.id) || interaction.user.id === interaction.guild.ownerId) {

@@ -1,7 +1,8 @@
 import Guild from "../Schemas/guildSchema.js";
 import Logger from "./logs.js";
 import texts from "./texts.js";
-
+import { EmbedBuilder, ActionRowBuilder, ButtonStyle } from 'discord.js';
+import { ButtonBuilder } from '@discordjs/builders';
 const lg = new Logger({ prefix: "Bot" });
 
 export async function get_lang(client, guildId) {
@@ -69,6 +70,76 @@ export async function can_give_role(interaction) {
   return;
 }
 }
+
+export async function send_embed(client, lang, guildId, channelId, guildData) {
+  const guild = await client.guilds.fetch(guildId);
+  const verifyChannel = await guild.channels.fetch(channelId);
+
+  let btnRow;
+  if (guildData.verificationSystem?.isEnabled === false) {
+    btnRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId('verifyBtn')
+        .setLabel('❌Disabled')
+        .setStyle(ButtonStyle.Danger)
+        .setDisabled(true)
+    );
+  } else {
+    btnRow = new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setCustomId("verifyBtn")
+        .setLabel("✔️ Verify")
+        .setStyle(ButtonStyle.Success)
+    );
+  }
+
+  const embed = new EmbedBuilder()
+    .setColor("#4248fc")
+    .setAuthor({
+      name: texts[lang].verification_embed_author,
+      iconURL: guild.iconURL(),
+    })
+    .setTitle(texts[lang].verification_title)
+    .setDescription(texts[lang].verification_description)
+    .setFooter({
+      text: "powered by AntiLink",
+      iconURL: client.user.avatarURL()
+    });
+
+  const sentMessage = await verifyChannel.send({
+    embeds: [embed],
+    components: [btnRow],
+  });
+
+  const result = await Guild.updateOne(
+    { _id: guildId, "verificationSystem": { $exists: true } }, // виправлено
+    {
+      $set: {
+        "verificationSystem.captcha_channel_id": verifyChannel.id,
+        "verificationSystem.captcha_embed_message_id": sentMessage.id
+      }
+    }
+  );
+
+  if (result.matchedCount === 0) {
+    await Guild.updateOne(
+      { _id: guildId },
+      {
+        $set: {
+          "verificationSystem": {
+            ...guildData.verificationSystem, // зберігаємо повністю
+            captcha_channel_id: verifyChannel.id,
+            captcha_embed_message_id: sentMessage.id
+          }
+        }
+      },
+      
+    );
+  }
+
+  
+}
+
 export const colors = {
   SUCCESSFUL_COLOR: "#86fa50",
   ERROR_COLOR: "#fa7850",

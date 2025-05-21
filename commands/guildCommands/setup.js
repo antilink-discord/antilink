@@ -1,8 +1,8 @@
-import { 
+import {
   SlashCommandBuilder,
   ButtonBuilder,
   ActionRowBuilder,
-  } from "@discordjs/builders";
+} from "@discordjs/builders";
 import {
   EmbedBuilder,
   MessageFlags,
@@ -17,7 +17,8 @@ import {
   clear_guild_language_cache,
   get_lang,
   colors,
-  can_give_role
+  can_give_role,
+  send_embed
 } from "../../utils/helper.js";
 import texts from "../../utils/texts.js";
 import Logger from "../../utils/logs.js";
@@ -267,7 +268,7 @@ export async function execute(interaction) {
     const isOwner = await check_owner_permission(interaction);
     if (isOwner === true) {
       try {
-        await interaction.deferReply({ ephemeral: true});
+        await interaction.deferReply({ ephemeral: true });
         const verifyChannel = interaction.options.getChannel("destination");
 
         if (!verifyChannel) {
@@ -276,88 +277,34 @@ export async function execute(interaction) {
             ephemeral: true,
           });
         } else {
-          let embed = new EmbedBuilder()
-            .setColor("#4248fc")
-            .setAuthor({
-              name: texts[lang].verification_embed_author, iconURL: interaction.guild.iconURL(),
-            })
-            .setTitle(texts[lang].verification_title)
-            .setDescription(texts[lang].verification_description)
-            .setFooter({
-              text: "powered by AntiLink",
-              iconURL: interaction.client.user.avatarURL()
-            });
 
-          const guildData = await Guild.findOne({ _id: interaction.guild.id});
-          let btnRow;
-            if(guildData.verificationSystem?.isEnabled === false) {
-                btnRow = new ActionRowBuilder().addComponents(
-                  new ButtonBuilder()
-                    .setCustomId('verifyBtn')
-                    .setLabel('❌Disabled')
-                    .setStyle(ButtonStyle.Danger)
-                    .setDisabled(true)
-                );
-            } else {
-              btnRow = btnRow = new ActionRowBuilder().addComponents(
-                new ButtonBuilder()
-              .setCustomId("verifyBtn")
-              .setLabel("✔️ Verify")
-              .setStyle(ButtonStyle.Success)
-              );
-            }
-         
-          if(guildData?.verificationSystem?.captcha_channel_id && guildData?.verificationSystem?.captcha_embed_message_id) {
+          const guildData = await Guild.findOne({ _id: interaction.guild.id });
+
+
+          if (guildData?.verificationSystem?.captcha_channel_id && guildData?.verificationSystem?.captcha_embed_message_id) {
             const verificationChannel = await interaction.guild.channels.fetch(guildData.verificationSystem.captcha_channel_id);
             console.log(verificationChannel);
             const message = await verificationChannel.messages.fetch(guildData.verificationSystem.captcha_embed_message_id).catch(e => {
               lg.error(e);
               return;
             });
-            if(message) {
+            if (message) {
               await message.delete().catch(error => {
                 lg.error(error);
               });
             }
-            
-            
+
+
           }
-          const sentMessage = await verifyChannel.send({
-            embeds: [embed],
-            components: [btnRow],
+          const sentMessage = await send_embed(interaction.client, lang, interaction.guild.id, verifyChannel.id, guildData);
+          lg.debug(`messageID`, sentMessage);
+          interaction.editReply({
+            content: texts[lang].setup_verificationchannel_setuped.replace("${verifyChannel}", verifyChannel),
+            flags: MessageFlags.Ephemeral
           });
 
-          await Promise.all([
-            Guild.updateOne(
-              { _id: interaction.guild.id, "verificationSystem.0": { $exists: true } },
-              {
-                $set: {
-                  "verificationSystem.captcha_channel_id": verifyChannel.id,
-                  "verificationSystem.captcha_embed_message_id": sentMessage.id
-                }
-              }
-            ).then(async (result) => {
-              if (result.matchedCount === 0) {
-  
-                await Guild.updateOne(
-                  { _id: interaction.guild.id },
-                  {
-                    $set: {
-                      "verificationSystem.captcha_channel_id": verifyChannel.id,
-                      "verificationSystem.captcha_embed_message_id": sentMessage.id
-                    }
-                  },
-                  { upsert: true }
-                );
-  
-              }
-            }),
 
-            interaction.editReply({
-              content: texts[lang].setup_verificationchannel_setuped.replace("${verifyChannel}", verifyChannel),
-              flags: MessageFlags.Ephemeral
-            })
-          ]);
+
         }
       } catch (error) {
         await interaction.editReply(texts[lang].main_error_message);
@@ -380,23 +327,23 @@ export async function execute(interaction) {
           guildData = new Guild({ _id: interaction.guild.id });
           await guildData.save();
         }
-        
-        if(!guildData.verificationSystem.captcha_embed_message_id)  {
-          await interaction.reply({ content: texts[lang].setup_verificationchannel_not_found, flags: MessageFlags.Ephemeral});
+
+        if (!guildData.verificationSystem.captcha_embed_message_id) {
+          await interaction.reply({ content: texts[lang].setup_verificationchannel_not_found, flags: MessageFlags.Ephemeral });
           return;
         };
-        if(!guildData.verificationSystem.unvefivedRoleID) {
+        if (!guildData.verificationSystem.unvefivedRoleID) {
           await interaction.reply({ content: texts[lang].setup_unverifedrole_not_found, flags: MessageFlags.Ephemeral });
           return;
-          }
+        }
 
-        if(!guildData.verificationSystem.verifedRoleId) {
+        if (!guildData.verificationSystem.verifedRoleId) {
           await interaction.reply({ content: texts[lang].setup_verifedrole_not_found, flags: MessageFlags.Ephemeral });
           return;
-          }
+        }
 
         if (guildData.verificationSystem.isEnabled === isChoiceTrue) {
-          await interaction.reply({ content: texts[lang].setup_banusers_isthesame, flags: MessageFlags.Ephemeral});
+          await interaction.reply({ content: texts[lang].setup_banusers_isthesame, flags: MessageFlags.Ephemeral });
           return;
         }
         if (choice === "true") {
@@ -406,17 +353,9 @@ export async function execute(interaction) {
               { $set: { 'verificationSystem.isEnabled': true } },
             );
 
-            const newButton = new ButtonBuilder()
-              .setCustomId("verifyBtn")
-              .setLabel("✔️ Verify")
-              .setStyle(ButtonStyle.Success);
 
-            const row = new ActionRowBuilder().addComponents(newButton);
-            const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e));
 
-            await messageChannel.messages.fetch(guildData?.verificationSystem.captcha_embed_message_id)
-              .then(messageToEdit => messageToEdit.edit({ components: [row] }))
-              .catch(error => lg.error('Помилка при редагуванні повідомлення:', error));
+            await enable_button();
 
             const SuccessfullEmbed = new EmbedBuilder()
               .setColor(colors.SUCCESSFUL_COLOR)
@@ -439,18 +378,9 @@ export async function execute(interaction) {
               { $set: { 'verificationSystem.isEnabled': false } },
             );
 
-            const newButton = new ButtonBuilder()
-              .setCustomId("verifyBtn")
-              .setLabel("❌Disabled")
-              .setStyle(ButtonStyle.Danger)
-              .setDisabled(true);
-            const row = new ActionRowBuilder().addComponents(newButton);
-            const messageChannel = await interaction.guild.channels.fetch(guildData?.verificationSystem.captcha_channel_id).catch(e => lg.error(`Помилка при пошуку каналу:`, e));
-            lg.debug(messageChannel);
-            await messageChannel.messages.fetch(guildData?.verificationSystem.captcha_embed_message_id)
-              .then(messageToEdit => messageToEdit.edit({ components: [row] }))
-              .catch(error => console.error('Помилка при редагуванні повідомлення:', error));
 
+
+            await disable_button();
 
             const SuccessfullEmbed = new EmbedBuilder()
               .setColor(colors.SUCCESSFUL_COLOR)
@@ -560,7 +490,7 @@ export async function execute(interaction) {
     try {
       const role = interaction.options.getRole("role");
       await can_give_role(interaction);
-      
+
       let guildData = await Guild.findOne({ _id: interaction.guild.id });
       if (!guildData) {
         guildData = new Guild({ _id: interaction.guild.id });
@@ -602,7 +532,7 @@ export async function execute(interaction) {
     try {
       const role = interaction.options.getRole("role");
       await can_give_role(interaction);
-      
+
       let guildData = await Guild.findOne({ _id: interaction.guild.id });
       if (!guildData) {
         guildData = new Guild({ _id: interaction.guild.id });
@@ -675,7 +605,7 @@ export async function execute(interaction) {
       } catch (error) {
         lg.error(error);
         await interaction.reply(texts[lang].main_error_message);
-        
+
         return;
       }
     }
@@ -786,4 +716,33 @@ export async function execute(interaction) {
       }
     }
   }
+}
+
+export async function enable_button(guild, captcha_channel_id, message_id) {
+  const newButton = new ButtonBuilder()
+    .setCustomId("verifyBtn")
+    .setLabel("✔️ Verify")
+    .setStyle(ButtonStyle.Success);
+
+  const row = new ActionRowBuilder().addComponents(newButton);
+
+  const messageChannel = await guild.channels.fetch(captcha_channel_id);
+  const messageToEdit = await messageChannel.messages.fetch(message_id);
+
+  await messageToEdit.edit({ components: [row] });
+}
+
+export async function disable_button(guild, captcha_channel_id, message_id) {
+  const newButton = new ButtonBuilder()
+    .setCustomId("verifyBtn")
+    .setLabel("❌Disabled")
+    .setStyle(ButtonStyle.Danger)
+    .setDisabled(true);
+
+  const row = new ActionRowBuilder().addComponents(newButton);
+
+  const messageChannel = await guild.channels.fetch(captcha_channel_id);
+  const messageToEdit = await messageChannel.messages.fetch(message_id);
+
+  await messageToEdit.edit({ components: [row] });
 }
