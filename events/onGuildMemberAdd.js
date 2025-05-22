@@ -9,7 +9,7 @@ export default {
   once: false,
 
   async execute(member) {
-    lg.info("Виклик івенту GuildMemberAdd");
+
     try {
       const guildData = await Guild.findOne({ _id: member.guild.id });
       if (guildData?.verificationSystem?.isEnabled === true){

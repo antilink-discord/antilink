@@ -106,7 +106,13 @@ export default {
     verification_answer_description: "Будь ласка, натисніть кнопку **Ввести** нижче і введіть код капчі.`",
     verification_answer_footer: "У вас є 60 секунд, щоб завершити капчу",
     verification_put_captcha: "Введіть капчу",
-    verification_old_captchd: "Капча застарала. Будь ласка, спробуйте знову."
+    verification_old_captchd: "Капча застарала. Будь ласка, спробуйте знову.",
+
+    joinmessage_social: "Мої соціальні мережі",
+    joinmessage_site: "Сайт:",
+    joinmessage_support: "Сервер підтримки:",
+    joinmessage_title: "Привіт",
+    joinmessage_description: "Дякую, що додав мене на свій сервер!\nМене можна налаштувати командою ``/setup``. Переглянь налаштування бота на своїй гільдії за допомогою команди ``/settings``."
   },
   en: {
     main_error_message: "**❌An error occurred while executing your command.**",
@@ -217,5 +223,11 @@ export default {
     verification_put_captcha: "Write the captcha code",
     verification_answer_description: "Please click the **Enter** button below and enter the captcha code.`",
     verification_answer_footer: "You have 60 seconds to solve the captcha.",
+
+    joinmessage_social: "My social links",
+    joinmessage_site: "Dashboard",
+    joinmessage_support: "Support server:",
+    joinmessage_title: "Hello!",
+    joinmessage_description: "Thank you for adding me to your server!\nYou can configure me with the ``/setup`` command. View the bot settings on your guild with the ``/settings`` command."
   },
 };
