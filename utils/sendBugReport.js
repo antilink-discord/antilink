@@ -3,7 +3,7 @@ import { colors, get_lang } from "./helper.js";
 import texts from "./texts.js";
 import { settingsHandler } from "./settingsHandler.js";
 import Logger from "./logs.js";
-const lg = new Logger("Bot");
+const lg = new Logger({ prefix: "Bot" });
 
 export async function send_webhook(interaction, bug_text, reproduce_text) {
   try {

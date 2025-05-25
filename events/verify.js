@@ -20,7 +20,7 @@ import svgCaptcha from "svg-captcha";
 import fs from "fs";
 import sharp from "sharp";
 import Logger from "../utils/logs.js";
-const lg = new Logger("Bot");
+const lg = new Logger({ prefix: "Bot" });
 import Guild from "../Schemas/guildSchema.js";
 import texts from "../utils/texts.js";
 

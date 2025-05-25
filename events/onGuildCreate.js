@@ -5,7 +5,7 @@ import { sendJoinLogs } from "../utils/devLogs.js";
 import Logger from "../utils/logs.js";
 import texts from "../utils/texts.js";
 import { get_lang } from "../utils/helper.js";
-const lg = new Logger();
+const lg = new Logger({ prefix: "Bot" });
 
 export default {
   name: Events.GuildCreate,
