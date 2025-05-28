@@ -99,8 +99,6 @@ export async function check_whitelist_and_owner(message) {
 
     const memberRoles = member.roles.cache;
 
-    memberRoles.forEach((role) => {});
-
     const hasWhitelistedRole = memberRoles.some((role) =>
       whitelist_data.includes(role.id),
     );

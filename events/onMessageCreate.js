@@ -62,6 +62,7 @@ export default {
             await userData.save();
             await delete_message_and_notice(message, userData, channel_name);
           } else if (userData) {
+            if(userData.warns>3) return;
             await User.updateOne(
               { _id: user_id },
               {
@@ -69,7 +70,7 @@ export default {
                 $push: {
                   reasons: {
                     author_id: "BOT",
-                    reason: "[Auto]links",
+                    reason: "[Auto] links",
                     proofs: null,
                     message_content: message.content,
                     timestamp: formatted_date,
