@@ -62,25 +62,26 @@ export default {
             await userData.save();
             await delete_message_and_notice(message, userData, channel_name);
           } else if (userData) {
-            if(userData.warns>3) return;
-            await User.updateOne(
-              { _id: user_id },
-              {
-                $inc: { warns: 1 },
-                $push: {
-                  reasons: {
-                    author_id: "BOT",
-                    reason: "[Auto] links",
-                    proofs: null,
-                    message_content: message.content,
-                    timestamp: formatted_date,
+            if(userData.warns < 4) {
+              await User.updateOne(
+                  {_id: user_id},
+                  {
+                    $inc: {warns: 1},
+                    $push: {
+                      reasons: {
+                        author_id: "BOT",
+                        reason: "[Auto] links",
+                        proofs: null,
+                        message_content: message.content,
+                        timestamp: formatted_date,
+                      },
+                    },
                   },
-                },
-              },
-              { upsert: true },
-            );
-            await delete_message_and_notice(message, userData, channel_name);
-          }
+                  {upsert: true},
+              );
+              await delete_message_and_notice(message, userData, channel_name);
+            }
+            }
         } else if (isMessageLink === false) {
           return;
         }
